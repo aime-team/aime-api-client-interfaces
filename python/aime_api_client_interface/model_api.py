@@ -430,7 +430,7 @@ class ModelAPI():
         try:
             body = test_string.split(',')[1] if ',' in test_string else None
             return base64.b64encode(base64.b64decode(body.encode('utf-8'))).decode('utf-8') == body if body else False
-        except TypeError:
+        except (TypeError, base64.binascii.Error):
             return False
 
 
