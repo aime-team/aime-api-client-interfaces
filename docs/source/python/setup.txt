@@ -4,4 +4,6 @@ Run
 .. highlight:: shell
 .. code-block:: shell
     
-    pip install ...
+
+    pip install wheel
+    pip install "git+https://github.com//aime-team/aime-api-client-interfaces.git#subdirectory=python"
