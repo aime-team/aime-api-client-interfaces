@@ -6,8 +6,8 @@
  */
 class ModelAPI {
 
-    static version = '1.0.0';
-        
+    static version = 'JavaScript AIME API Client Interface 0.0.1';
+    
     /**
     * Constructor of the class.
     * @constructor
@@ -24,11 +24,22 @@ class ModelAPI {
      * Method for retrieving the authentication key.
      * @async
      * @param {string} endpointName - The name of the API endpoint.
-     * @returns {string} - The authentication key.
+     * @returns {string} - The authentication key if successful
      */
     async fetchAuthKey(endpointName) {
-        const response = await this.fetchAsync(`/get_client_session_auth_key?endpoint_name=${encodeURIComponent(endpointName)}`);
-        return response.client_session_auth_key;
+        
+        const response = await this.fetchAsync(`/get_client_session_auth_key?endpoint_name=${encodeURIComponent(endpointName)}&version=${encodeURIComponent(ModelAPI.version)}`);
+        
+        if (response.success) {
+            return response.client_session_auth_key;
+        }
+        else {
+            var errorMessage = `Authentication failed! ${response.msg}.`
+            if (response.ep_version) {
+                errorMessage += ` Endpoint version: ${response.ep_version}`
+            }
+            throw new Error(errorMessage)
+        }
     }
 
     /**
@@ -47,7 +58,7 @@ class ModelAPI {
         const response = await fetch(url, { method, headers, body });
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch data from ${url}`);
+            throw new Error(`Failed to fetch data from ${url}. Response ${response}`);
         }
 
         return response.json();
@@ -66,7 +77,8 @@ class ModelAPI {
             if (resultCallback && typeof resultCallback === 'function') {
                 resultCallback(authKey);
             }
-        } catch (error) {
+        } 
+        catch (error) {
             console.error('Error during API login:', error);
         }
     }

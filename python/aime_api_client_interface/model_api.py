@@ -436,20 +436,20 @@ class ModelAPI():
 
     @staticmethod
     def get_version():
-        """Parses name and version of API Python Client Interface with pkg_resources
+        """Parses name and version of AIME API Client Interface with pkg_resources
 
         Returns:
-            str: Name and version of API Python Client Interface
+            str: Name and version of AIME API Client Interface
         """        
         try:
-            version = str(pkg_resources.get_distribution("python_api_client_interface"))
-        except pkg_resources.DistributionNotFound:
+            version = 'Python ' + str(pkg_resources.get_distribution("aime_api_client_interface"))
+        except pkg_resources.DistributionNotFound: # If package is not installed via pip
             import re
             from pathlib import Path
             setup_py = Path(__file__).resolve().parent.parent / 'setup.py'
             with open(setup_py, 'r') as file:                
                 version_no = re.search(r"version\s*=\s*'(.*)'\s*,\s*\n", file.read()).group(1)
-            version = f'api_client_interface {version_no}'
+            version = f'Python AIME API Client Interface {version_no}'
         return version
 
 
