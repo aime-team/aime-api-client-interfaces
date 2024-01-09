@@ -678,11 +678,8 @@ class ModelAPI():
             str: The client session authentication key.
             
         """
-        url = f'{self.api_server}/get_client_session_auth_key'
-        params = {
-            'endpoint_name': self.endpoint_name, 
-            'version': ModelAPI.get_version()
-        }
+        url = f'{self.api_server}/{self.endpoint_name}/get_client_session_auth_key'
+        params = {'version': ModelAPI.get_version()}
         try:
             async with self.session.get(url=url, params=params) as response:
                 response_json = await response.json()
@@ -702,11 +699,8 @@ class ModelAPI():
         Returns:
             str: The client session authentication key.
         """
-        url = f'{self.api_server}/get_client_session_auth_key'
-        params = {
-            'endpoint_name': self.endpoint_name,
-            'version': ModelAPI.get_version()
-        }
+        url = f'{self.api_server}/{self.endpoint_name}/get_client_session_auth_key'
+        params = {'version': ModelAPI.get_version()}
         try:
             response = requests.get(url=url, params=params)
 
@@ -939,7 +933,7 @@ class ModelAPI():
         if error_callback:
             await if_async_else_run(error_callback, error_description)
             return error_description
-        elif response_json == {'success': False, 'errors': ['Client session authentication key not registered in API Server']}:
+        elif response_json and 'Client session authentication key not registered in API Server' in response_json.get('errors'):
             raise ConnectionRefusedError('Login failed! You first need to run do_login() to login to the API server!\n'+error_description)
         elif request_type == 'progress':
             raise BrokenPipeError('Lost connection while receiving progress. To catch this error, use progress_error_callback')
@@ -975,7 +969,7 @@ class ModelAPI():
         if error_callback:
             error_callback(error_description)
             return error_description
-        elif response_json == {'success': False, 'errors': ['Client session authentication key not registered in API Server']}:
+        elif response_json and 'Client session authentication key not registered in API Server' in response_json.get('errors'):
             raise ConnectionRefusedError('Login failed! You first need to run do_login() to login to the API server!\n'+error_description)
         elif request_type == 'progress':
             raise BrokenPipeError('Lost connection while receiving progress. To catch this error, use progress_error_callback')
