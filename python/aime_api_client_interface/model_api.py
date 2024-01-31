@@ -430,7 +430,7 @@ class ModelAPI():
         try:
             body = test_string.split(',')[1] if ',' in test_string else None
             return base64.b64encode(base64.b64decode(body.encode('utf-8'))).decode('utf-8') == body if body else False
-        except (TypeError, base64.binascii.Error):
+        except (TypeError, base64.binascii.Error, ValueError):
             return False
 
 
@@ -933,7 +933,7 @@ class ModelAPI():
         if error_callback:
             await if_async_else_run(error_callback, error_description)
             return error_description
-        elif response_json and 'Client session authentication key not registered in API Server' in response_json.get('errors'):
+        elif response_json and response_json.get('errors') and 'Client session authentication key not registered in API Server' in response_json.get('errors'):
             raise ConnectionRefusedError('Login failed! You first need to run do_login() to login to the API server!\n'+error_description)
         elif request_type == 'progress':
             raise BrokenPipeError('Lost connection while receiving progress. To catch this error, use progress_error_callback')
@@ -963,13 +963,19 @@ class ModelAPI():
             str: Error description
         """        
         status_code = response.status_code if hasattr(response, 'status_code') else None
-        response_json = response.json() if status_code is not None else None
-        error_description = self.__make_error_description(status_code, response_json, request_type)
+        if status_code == 404:
+            error_response = response.text
+        elif status_code is not None:
+            error_response = str(response.json())
+        else:
+            error_response = None
+
+        error_description = self.__make_error_description(status_code, error_response, request_type)
         
         if error_callback:
             error_callback(error_description)
             return error_description
-        elif response_json and 'Client session authentication key not registered in API Server' in response_json.get('errors'):
+        elif error_response and 'Client session authentication key not registered in API Server' in error_response:
             raise ConnectionRefusedError('Login failed! You first need to run do_login() to login to the API server!\n'+error_description)
         elif request_type == 'progress':
             raise BrokenPipeError('Lost connection while receiving progress. To catch this error, use progress_error_callback')
@@ -981,20 +987,20 @@ class ModelAPI():
     def __make_error_description(
         self, 
         status_code, 
-        response_json, 
+        error_reponse, 
         request_type
         ):
         """Helper method to create error report string
 
         Args:
             status_code (int): Status code of request response.
-            response_json (dict): Dictionary with request response.
+            error_reponse (dict): Request error response text.
             request_type (str): Type of request (login, API request, progress)
 
         Returns:
             str: Error description
         """        
-        status_code_str = f'Status code: {status_code}\nResponse: {response_json}' if status_code else f'Connection to {self.api_server} offline'
+        status_code_str = f'Status code: {status_code}\nResponse: {error_reponse}' if status_code else f'Connection to {self.api_server} offline'
         return f'{request_type.capitalize()} at {self.api_server} failed!\n{status_code_str}'
 
 
@@ -1369,4 +1375,3 @@ async def if_async_else_run(callback, *args):
         return await callback(*args)
     elif callable(callback):
         return callback(*args)
-
