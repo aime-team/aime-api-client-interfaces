@@ -1,0 +1,4 @@
+
+The Javascript client interface is contained in a single js file: **model_api.js**
+
+For cross-site scripting security reasons and to fulfil the same-origin policy of web browsers, it is easiest to host a copy of the file on the web server the HTML files are served from.

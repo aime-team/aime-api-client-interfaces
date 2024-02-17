@@ -1,6 +1,6 @@
 
-Documentation AIME JavaScript Client Interface
-==============================================
+Documentation AIME API JavaScript Client Interface
+==================================================
 
 .. js:autoclass:: ModelAPI
    :members:
