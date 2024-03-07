@@ -1,9 +1,8 @@
  
-Run
+The Python API interface is available as Pip package, which can be installed with following commands:
 
 .. highlight:: shell
 .. code-block:: shell
     
-
     pip install wheel
     pip install "git+https://github.com//aime-team/aime-api-client-interfaces.git#subdirectory=python"

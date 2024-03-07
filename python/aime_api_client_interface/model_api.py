@@ -533,20 +533,22 @@ class ModelAPI():
         progress_info = {'job_id': progress_result.get('job_id')}
         if progress_result.get('success'):
 
-            progress = progress_result['progress']
-            progress_info['progress'] = progress['progress']
-            progress_info['queue_position'] = progress['queue_position']
-            progress_info['estimate'] = progress.get('estimate')
-            progress_data = progress.get('progress_data')
-
             if progress_result['job_state'] == 'done':
                 job_result = progress_result['job_result']
                 job_result['job_id'] = progress_info['job_id']
                 job_result['success'] = progress_result['success']
+                progress_info['progress'] = 100
+                progress_info['queue_position'] = 0
                 progress_data = job_result
+            else:
+                progress = progress_result['progress']
+                progress_info['progress'] = progress['progress']
+                progress_info['queue_position'] = progress['queue_position']
+                progress_info['estimate'] = progress.get('estimate')
+                progress_data = progress.get('progress_data')
 
-            elif progress_result['job_state'] == 'canceled':
-                return progress_info, progress_data
+                if progress_result['job_state'] == 'canceled':
+                    return progress_info, progress_data
 
             return progress_info, self.__convert_result_params(progress_data)
 
