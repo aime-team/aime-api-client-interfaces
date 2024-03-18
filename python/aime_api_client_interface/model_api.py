@@ -935,7 +935,7 @@ class ModelAPI():
         if error_callback:
             await if_async_else_run(error_callback, error_description)
             return error_description
-        elif response_json and response_json.get('errors') and 'Client session authentication key not registered in API Server' in response_json.get('errors'):
+        elif response_json and response_json.get('error') and 'Client session authentication key not registered in API Server' in response_json.get('error'):
             raise ConnectionRefusedError('Login failed! You first need to run do_login() to login to the API server!\n'+error_description)
         elif request_type == 'progress':
             raise BrokenPipeError('Lost connection while receiving progress. To catch this error, use progress_error_callback')
@@ -1157,7 +1157,7 @@ async def do_api_request_async(
                 process_progress_data(progress_data)
 
 
-            asyncio.run(do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}), result_callback, progress_callback))
+            asyncio.run(do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, result_callback, progress_callback))
 
         Example usage with asynchronous callbacks:
 
@@ -1174,7 +1174,7 @@ async def do_api_request_async(
                 await process_progress_data(progress_data)
 
 
-            result = asyncio.run(do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}), result_callback, progress_callback))
+            result = asyncio.run(do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, result_callback, progress_callback))
 
 
         Example progress result dictionary at start:
@@ -1295,7 +1295,7 @@ def do_api_request(
             def progress_error_callback(error_description):
                 pass
 
-            result = do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}), progress_callback, progress_error_callback)
+            result = do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, progress_callback, progress_error_callback)
         
         Example progress result dictionary at start:
 
