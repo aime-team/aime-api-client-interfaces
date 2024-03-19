@@ -670,7 +670,7 @@ class ModelAPI():
 
     async def __fetch_auth_key_async(self, error_callback):
         """
-        Asynchronous retrieve of client session authentication key via route /get_client_session_auth_key.
+        Asynchronous retrieve of client session authentication key via route /login.
 
         Args:
             error_callback (callable or coroutine, optional): Callback function or coroutine with argument error_description (str) for catching 
@@ -680,7 +680,7 @@ class ModelAPI():
             str: The client session authentication key.
             
         """
-        url = f'{self.api_server}/{self.endpoint_name}/get_client_session_auth_key'
+        url = f'{self.api_server}/{self.endpoint_name}/login'
         params = {'version': ModelAPI.get_version()}
         try:
             async with self.session.get(url=url, params=params) as response:
@@ -696,12 +696,12 @@ class ModelAPI():
 
     def __fetch_auth_key(self):
         """
-        Synchronous retrieve of client session authentication key via route /get_client_session_auth_key.
+        Synchronous retrieve of client session authentication key via route /login.
 
         Returns:
             str: The client session authentication key.
         """
-        url = f'{self.api_server}/{self.endpoint_name}/get_client_session_auth_key'
+        url = f'{self.api_server}/{self.endpoint_name}/login'
         params = {'version': ModelAPI.get_version()}
         try:
             response = requests.get(url=url, params=params)
@@ -1371,7 +1371,7 @@ async def if_async_else_run(callback, *args):
         callback (function or coroutine): Await asynchronous coroutine, call synchronous functions.
 
     Returns:
-        callback(\*args): Result of callback
+        callback(*args): Result of callback
     """    
     if asyncio.iscoroutinefunction(callback):
         return await callback(*args)
