@@ -103,7 +103,7 @@ class ModelAPI():
 
     """
 
-    def __init__(self, api_server, endpoint_name, session=None, output_format='base64'):
+    def __init__(self, api_server, endpoint_name, user=None, key=None, session=None, output_format='base64'):
         
         """
         Constructor
@@ -118,9 +118,12 @@ class ModelAPI():
         """
         self.api_server = api_server
         self.endpoint_name = endpoint_name
+        self.user = user
+        self.key = key
         self.session = session
         self.client_session_auth_key = None
         self.output_format = output_format
+
 
 
     async def __aexit__(self):
@@ -129,6 +132,8 @@ class ModelAPI():
 
     async def do_api_login_async(
         self,
+        user=None,
+        key=None,
         result_callback=None,
         error_callback=None,
         session=None
@@ -149,12 +154,19 @@ class ModelAPI():
         Returns:
             str: Client session authentication key
         """
+        if not user:
+            user = self.user
+        if not key:
+            key = self.key
         self.setup_session(session)
-        self.client_session_auth_key = await self.__fetch_auth_key_async(error_callback)
+        self.client_session_auth_key = await self.__fetch_auth_key_async(user, key, error_callback)
         return self.client_session_auth_key
         
 
-    def do_api_login(self):
+    def do_api_login(self,
+        user=None,
+        key=None
+        ):
         """
         Client login to API server and obtain an authentication key.
 
@@ -164,7 +176,11 @@ class ModelAPI():
         Returns:
             str: Client session authentication key
         """
-        self.client_session_auth_key = self.__fetch_auth_key()
+        if not user:
+            user = self.user
+        if not key:
+            key = self.key
+        self.client_session_auth_key = self.__fetch_auth_key(user, key)
         return self.client_session_auth_key
 
 
@@ -668,7 +684,7 @@ class ModelAPI():
             return self.__error_handler_sync(error, 'API request')
 
 
-    async def __fetch_auth_key_async(self, error_callback):
+    async def __fetch_auth_key_async(self, user, key, error_callback):
         """
         Asynchronous retrieve of client session authentication key via route /login.
 
@@ -681,7 +697,7 @@ class ModelAPI():
             
         """
         url = f'{self.api_server}/{self.endpoint_name}/login'
-        params = {'version': ModelAPI.get_version()}
+        params = {'version': ModelAPI.get_version(), 'user': user, 'key': key}
         try:
             async with self.session.get(url=url, params=params) as response:
                 response_json = await response.json()
@@ -694,7 +710,7 @@ class ModelAPI():
             return await self.__error_handler_async(error, 'login', error_callback)
 
 
-    def __fetch_auth_key(self):
+    def __fetch_auth_key(self, user, key):
         """
         Synchronous retrieve of client session authentication key via route /login.
 
@@ -702,7 +718,7 @@ class ModelAPI():
             str: The client session authentication key.
         """
         url = f'{self.api_server}/{self.endpoint_name}/login'
-        params = {'version': ModelAPI.get_version()}
+        params = {'version': ModelAPI.get_version(), 'user': 'aime', 'key':'6a17e2a5b70603cb1a3294b4a1df67da'}
         try:
             response = requests.get(url=url, params=params)
 
@@ -806,7 +822,7 @@ class ModelAPI():
                     return await self.__error_handler_async(response, 'progress', progress_error_callback)
 
         except aiohttp.client_exceptions.ClientConnectorError as error:
-            return await self.__error_handler_async(response, 'progress', progress_error_callback)
+            return await self.__error_handler_async(error, 'progress', progress_error_callback)
 
 
     def __fetch_progress_sync(self, job_id, progress_error_callback):
@@ -1110,7 +1126,9 @@ class ModelAPI():
 async def do_api_request_async(
     api_server, 
     endpoint_name, 
-    params, 
+    params,
+    user=None,
+    key=None,
     result_callback = None, 
     progress_callback = None,
     request_error_callback = None,
@@ -1240,7 +1258,7 @@ async def do_api_request_async(
             }
     """
 
-    model_api = ModelAPI(api_server, endpoint_name, session)
+    model_api = ModelAPI(api_server, endpoint_name, user, key, session)
     auth_key = await model_api.do_api_login_async()
     result = await model_api.do_api_request_async(
         params,
@@ -1255,8 +1273,10 @@ async def do_api_request_async(
 
 def do_api_request(
     api_server, 
-    endpoint_name, 
-    params, 
+    endpoint_name,
+    params,
+    user=None,
+    key=None,
     progress_callback = None,
     progress_error_callback = None
     ):
@@ -1359,7 +1379,7 @@ def do_api_request(
                 'success': True
             }
     """ 
-    model_api = ModelAPI(api_server, endpoint_name)
+    model_api = ModelAPI(api_server, endpoint_name, user, key)
     client_session_auth_key = model_api.do_api_login()
     return model_api.do_api_request(params, progress_callback, progress_error_callback)
     
