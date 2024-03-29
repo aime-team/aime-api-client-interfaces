@@ -953,8 +953,8 @@ class ModelAPI():
         error_description = self.__make_error_description(status_code, response_json, request_type)
         
         if error_callback:
-            await if_async_else_run(error_callback, error_description)
-            return error_description
+            await if_async_else_run(error_callback, response_json)
+            return response_json
         elif response_json and response_json.get('error') and 'Client session authentication key not registered in API Server' in response_json.get('error'):
             raise ConnectionRefusedError('Login failed! You first need to run do_login() to login to the API server!\n'+error_description)
         elif request_type == 'progress':
@@ -995,8 +995,8 @@ class ModelAPI():
         error_description = self.__make_error_description(status_code, error_response, request_type)
         
         if error_callback:
-            error_callback(error_description)
-            return error_description
+            error_callback(error_response)
+            return error_response
         elif error_response and 'Client session authentication key not registered in API Server' in error_response:
             raise ConnectionRefusedError('Login failed! You first need to run do_login() to login to the API server!\n'+error_description)
         elif request_type == 'progress':
