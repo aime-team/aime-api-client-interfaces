@@ -34,7 +34,7 @@ class ModelAPI():
 
         .. highlight:: python
         .. code-block:: python
-          
+        
             from python_api_client_interface import ModelAPI
             
             def progress_callback(progress_info, progress_data):
@@ -43,8 +43,8 @@ class ModelAPI():
 
             model_api = ModelAPI('https://api.aime.team', 'llama2_chat')
             model_api.do_api_login()
-            result = model_api.do_api_request(params)
-            result_2 = model_api.do_api_request(params)
+            result = model_api.do_api_request(params, progress_callback)
+            result_2 = model_api.do_api_request(params, progress_callback)
             ...
             
 
