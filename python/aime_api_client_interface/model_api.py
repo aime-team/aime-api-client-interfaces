@@ -705,7 +705,7 @@ class ModelAPI():
         try:
             async with self.session.get(url=url, params=params) as response:
                 response_json = await response.json()
-                if response.status == 200:
+                if response.status == 200 and response_json.get('success'):
                     return response_json.get('client_session_auth_key')
                 else:
                     return await self.__error_handler_async(response, 'login', error_callback)
@@ -722,11 +722,11 @@ class ModelAPI():
             str: The client session authentication key.
         """
         url = f'{self.api_server}/{self.endpoint_name}/login'
-        params = {'version': ModelAPI.get_version(), 'user': 'aime', 'key':'6a17e2a5b70603cb1a3294b4a1df67da'}
+        params = {'version': ModelAPI.get_version(), 'user': user, 'key': key}
         try:
             response = requests.get(url=url, params=params)
 
-            if response.status_code == 200:
+            if response.status_code == 200 and response.json().get('success'):
                 return response.json().get('client_session_auth_key')
             else:
                 return self.__error_handler_sync(response, 'login', None)
