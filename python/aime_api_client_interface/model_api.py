@@ -41,7 +41,7 @@ class ModelAPI():
                 process_progress_info(progress_info)
                 process_progress_data(progress_data)
 
-            model_api = ModelAPI('https://api.aime.team', 'llama2_chat')
+            model_api = ModelAPI('https://api.aime.team', 'llama2_chat', 'user_name', 'user_key')
             model_api.do_api_login()
             result = model_api.do_api_request(params, progress_callback)
             result_2 = model_api.do_api_request(params, progress_callback)
@@ -67,7 +67,7 @@ class ModelAPI():
                 print(error_description)
 
             async def main():
-                model_api = modelAPI('https://api.aime.team', 'llama2_chat')
+                model_api = modelAPI('https://api.aime.team', 'llama2_chat', 'user_name', 'user_key')
                 await model_api.do_api_login()
                 result = await model_api.do_api_request(params, result_callback, progress_callback)
                 result2 = await model_api.do_api_request(params, result_callback, progress_callback)
@@ -96,7 +96,7 @@ class ModelAPI():
                 print(error_description)
 
             async def main():
-                model_api = modelAPI('https://api.aime.team', 'llama2_chat')
+                model_api = modelAPI('https://api.aime.team', 'llama2_chat', 'user_name', 'user_key')
                 await model_api.do_api_login()
                 result = await model_api.do_api_request(params, result_callback, progress_callback)
                 result2 = await model_api.do_api_request(params, result_callback, progress_callback)
@@ -113,9 +113,11 @@ class ModelAPI():
         Constructor
 
         Args:
-            api_server (str): The base URL of the API server.
-            endpoint_name (str): The name of the API endpoint.
-            session (aiohttp.ClientSession): Give existing session to ModelApi API to make upcoming requests in given session. 
+            api_server (str): The base URL of the API server
+            endpoint_name (str): The name of the API endpoint
+            user (str): The name of the user
+            key (str): The user related key
+            session (aiohttp.ClientSession): Give existing session to ModelAPI to make upcoming requests in given session. 
                 Defaults to None.
             output_format (str) = Output format of objects like images in result dictionary of do_api_request() and do_api_request_async().
                 Defaults to 'base64'.  
@@ -146,6 +148,8 @@ class ModelAPI():
         Asynchronous client login to API server and obtain an authentication key.
 
         Args:
+            user (str): The name of the user
+            key (str): The user related key
             result_callback (callable or coroutine): Callback function or coroutine with the obtained client_session_auth_key as argument. 
                 Accepts synchronous functions and asynchrouns couroutines. Defaults to None.
             error_callback (callable or coroutine), Callback function or coroutine for catching errors obtaining client_session_auth_key. 
@@ -173,6 +177,10 @@ class ModelAPI():
         ):
         """
         Client login to API server and obtain an authentication key.
+
+        Args:
+            user (str): The name of the user
+            key (str): The user related key
 
         Raises:
             ConnectionError: If there is a connection issue with the API server.
@@ -1143,9 +1151,11 @@ async def do_api_request_async(
     A simplified interface for making a single asynchronous API request with do_api_login included.
 
     Args:
-        api_server (str): The address of the API server.
-        endpoint_name (str): The name of the API endpoint.
-        params (dict): Parameters for the API request.
+        api_server (str): The address of the API server
+        endpoint_name (str): The name of the API endpoint
+        params (dict): Parameters for the API request
+        user (str): The name of the user
+        key (str): The user related key
         result_callback (callback, optional): Callback function with argument result (dict) to handle the API request result. Defaults to None.
         progress_callback (callback, optional): Callback function with arguments progress_info (dict). Defaults to None.
             and progress_data (dict) for tracking progress. Defaults to None.
@@ -1179,7 +1189,7 @@ async def do_api_request_async(
                 process_progress_data(progress_data)
 
 
-            asyncio.run(do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, result_callback, progress_callback))
+            asyncio.run(do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, 'user_name', 'password', result_callback, progress_callback))
 
         Example usage with asynchronous callbacks:
 
@@ -1196,7 +1206,7 @@ async def do_api_request_async(
                 await process_progress_data(progress_data)
 
 
-            result = asyncio.run(do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, result_callback, progress_callback))
+            result = asyncio.run(do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, 'user_name', 'password', result_callback, progress_callback))
 
 
         Example progress result dictionary at start:
@@ -1290,6 +1300,8 @@ def do_api_request(
         api_server (str): Address of API server
         endpoint_name (str): Name of endpoint
         params (dict): Dictionary with api request parameters
+        user (str): The name of the user
+        key (str): The user related key
         progress_callback (callback, optional): Callback function with arguments progress_info (dict) 
             and progress_data (dict) for tracking progress. Defaults to None.
         progress_error_callback (callback, optional): Callback function with argument error_description (str) 
@@ -1319,7 +1331,7 @@ def do_api_request(
             def progress_error_callback(error_description):
                 pass
 
-            result = do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, progress_callback, progress_error_callback)
+            result = do_api_request('https://api.aime.team', 'llama2_chat', {'text': 'Chat question'}, 'user_name', 'password', progress_callback, progress_error_callback)
         
         Example progress result dictionary at start:
 
