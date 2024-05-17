@@ -9,7 +9,7 @@
  */
 class ModelAPI {
 
-    static version = 'JavaScript AIME API Client Interface 0.8.0';
+    static version = 'JavaScript AIME API Client Interface 0.8.1';
     
     /**
     * Constructor of the class.
