@@ -1,2 +1,19 @@
 
-[TODO] Include Javascript examples
+Simple single call example:
+
+.. highlight:: html
+.. code-block:: html
+
+    <script src="/js/model_api.js"></script>
+    <script>
+    function onResultCallback(data) {
+        console.log(data.text) // print generated text to console
+    }
+
+    params = new Object({
+        text : 'Your text prompt' 
+    });
+
+    doAPIRequest('llama2_chat', params, onResultCallback, 'user_name', 'user_key');
+    </script>
+
