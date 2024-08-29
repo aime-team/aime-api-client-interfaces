@@ -7,7 +7,6 @@ import base64
 import asyncio
 import requests
 import time
-import pickle
 import pkg_resources
 
 
@@ -107,7 +106,7 @@ class ModelAPI():
 
     """
 
-    def __init__(self, api_server, endpoint_name, user=None, key=None, session=None, output_format='base64'):
+    def __init__(self, api_server, endpoint_name, user=None, key=None, session=None, output_format='base64', output_type = 'image'):
         
         """
         Constructor
@@ -119,8 +118,9 @@ class ModelAPI():
             key (str): The user related key
             session (aiohttp.ClientSession): Give existing session to ModelAPI to make upcoming requests in given session. 
                 Defaults to None.
-            output_format (str) = Output format of objects like images in result dictionary of do_api_request() and do_api_request_async().
+            output_format (str): Output format of objects like images in result dictionary of do_api_request() and do_api_request_async().
                 Defaults to 'base64'.  
+            output_type(str): Output data type like "image" or "audio". Defaults to'image'.
         """
         self.api_server = api_server
         self.endpoint_name = endpoint_name
@@ -129,6 +129,7 @@ class ModelAPI():
         self.session = session
         self.client_session_auth_key = None
         self.output_format = output_format
+        self.output_type = output_type
 
 
 
@@ -1057,32 +1058,24 @@ class ModelAPI():
         return params_converted
 
 
-    def __convert_base64_to_desired_format(self, base64_string):
-        """Convert given base64 string to python object unpacked with pickle.loads().
+    def __convert_base64_to_desired_format(self, value):
+        """Convert given base64 string to byte-string if outputformat == byte-string.
 
         Args:
-            base64_string (str): Base64 string to be converted
-
-        Raises:
-            TypeError: When data couldn't be unpacked.
+            value (str): Base64 string to be converted
 
         Returns:
             str, bytes or object: Base64 string bytes string or python object, depending on self.output_format.
         """
-        if ModelAPI.check_if_valid_base64_string(base64_string) and (self.output_format == 'byte_string' or self.output_format == 'object'):
-            output = base64.b64decode(base64_string.split(',')[1].encode('utf-8'))
-            if self.output_format == 'object':
-                try:
-                    output = pickle.loads(output)
-                except pickle.UnpicklingError:
-                    raise TypeError('Error unpacking received data. Change output_format in ModelAPI()')
+        if ModelAPI.check_if_valid_base64_string(value):
+            if self.output_format == 'byte_string':
+                return base64.b64decode(value.split(',')[1].encode('utf-8'))
+            else:
+                return value
         else:
-            output = base64_string
+            return value
 
-        return output
-
-
-    def __convert_object_or_byte_string_params_to_base64(self, params, data_type='image'):
+    def __convert_object_or_byte_string_params_to_base64(self, params):
         """
         Convert byte string data parameters to base64 encoding in a dictionary.
 
@@ -1092,20 +1085,15 @@ class ModelAPI():
         Returns:
             dict: Dictionary with byte string data parameters converted to base64 encoding.
         """
-        data_format = params.pop('image_format') if 'image_format' in params else 'PNG'
-
+        data_format = params.pop('image_format') if 'image_format' in params else 'JPEG'
+        data_format = params.pop('audio_format') if 'audio_format' in params else 'WAV'
         if params:
             for key, value in params.items():
                 if isinstance(value, bytes):
                     if not data_format:
                         data_format = self.__get_data_format_from_byte_string(value)
-                    params[key] = f'data:{data_type}/{data_format};base64,' + base64.b64encode(value).decode('utf-8')
-                elif not isinstance(value, (str, int, float, list, tuple, dict, set)):
-                    params[key] = params[key] = f'data:{data_type}/{data_format};base64,' + base64.b64encode(pickle.dumps(value)).decode('utf-8')
-
+                    params[key] = f'data:{self.output_type}/{data_format};base64,' + base64.b64encode(value).decode('utf-8')
         return params
-
-
 
 
     def __do_progress_stream(self, result_callback, progress_callback):
