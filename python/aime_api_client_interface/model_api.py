@@ -310,6 +310,31 @@ class ModelAPI():
         return result
 
 
+    async def get_api_request_generator(
+        self,
+        params,
+        progress_interval=DEFAULT_PROGRESS_INTERVAL,
+        session=None,
+        output_format='base64'
+        ):
+        self.setup_session(session)
+        params['client_session_auth_key'] = self.client_session_auth_key
+        params['wait_for_result'] = False
+        result = await self.__fetch_async(f'{self.api_server}/{self.endpoint_name}', params)
+        if result.get('success'):
+            job_id = result['job_id']
+            yield {'job_id': job_id, 'sucess': result.get('success')}, {}
+            job_done = False
+            now = time.time()
+            while not job_done:
+                progress_result = await self.__fetch_progress_async(job_id)
+                job_done = progress_result.get('job_state') == 'done'
+                progress_info, progress_data = self.__process_progress_result(progress_result)
+                if progress_result.get('job_state') != 'canceled':
+                    yield progress_info, progress_data
+                    await asyncio.sleep(progress_interval)
+
+
     def do_api_request(
         self,
         params,
@@ -504,7 +529,7 @@ class ModelAPI():
             progress_interval (int): Interval in seconds at which progress is checked.
         """ 
         job_done = False
-        while not job_done:         
+        while not job_done:
             progress_result = await self.__fetch_progress_async(job_id, progress_error_callback)
             job_done = progress_result.get('job_state') == 'done'
             progress_info, progress_data = self.__process_progress_result(progress_result)
@@ -512,7 +537,6 @@ class ModelAPI():
             if progress_result.get('job_state') != 'canceled':
                 await if_async_else_run(progress_callback, progress_info, progress_data)
                 await asyncio.sleep(progress_interval)
-
         await if_async_else_run(result_callback, progress_data)
         return progress_data
 
@@ -537,7 +561,6 @@ class ModelAPI():
 
         Returns:
             dict: Dictionary with job results
-
         """ 
         job_done = False
         while not job_done:         
@@ -561,22 +584,21 @@ class ModelAPI():
         """
         progress_info = {'job_id': progress_result.get('job_id')}
         if progress_result.get('success'):
-
-            if progress_result['job_state'] == 'done':
-                job_result = progress_result['job_result']
-                job_result['job_id'] = progress_info['job_id']
-                job_result['success'] = progress_result['success']
+            job_state = progress_result.get('job_state')
+            if job_state == 'done':
+                progress_data = progress_result['job_result']
+                progress_data['job_id'] = progress_info['job_id']
+                progress_data['success'] = progress_result['success']
+                progress_data['job_state'] = job_state
                 progress_info['progress'] = 100
-                progress_info['queue_position'] = 0
-                progress_data = job_result
             else:
-                progress = progress_result['progress']
-                progress_info['progress'] = progress['progress']
-                progress_info['queue_position'] = progress['queue_position']
+                progress = progress_result.get('progress', {})
+                progress_info['progress'] = progress.get('progress')
+                progress_info['queue_position'] = progress.get('queue_position')
                 progress_info['estimate'] = progress.get('estimate')
                 progress_data = progress.get('progress_data')
 
-                if progress_result['job_state'] == 'canceled':
+                if job_state == 'canceled':
                     return progress_info, progress_data
 
             return progress_info, self.__convert_result_params(progress_data)
@@ -744,7 +766,7 @@ class ModelAPI():
             return self.__error_handler_sync(error, 'login', None)
 
 
-    async def __fetch_progress_async(self, job_id, progress_error_callback):
+    async def __fetch_progress_async(self, job_id, progress_error_callback=None):
         """
         Fetch progress data asynchronously from API server for running job with given job id.
 
@@ -838,7 +860,7 @@ class ModelAPI():
             return await self.__error_handler_async(error, 'progress', progress_error_callback)
 
 
-    def __fetch_progress_sync(self, job_id, progress_error_callback):
+    def __fetch_progress_sync(self, job_id, progress_error_callback=None):
         """
         Fetch progress data from API server for running job with given job id.
 
