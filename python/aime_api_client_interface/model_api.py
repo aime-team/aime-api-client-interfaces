@@ -317,21 +317,100 @@ class ModelAPI():
         session=None,
         output_format='base64'
         ):
+        """Generator function to get request generator, yielding the results
+
+        Args:
+            params (dict): Dictionary with parameters for the the API request.
+            progress_interval (int, optional): Interval in seconds at which progress is checked. Defaults to DEFAULT_PROGRESS_INTERVAL.
+            session (aiohttp.ClientSession): Give existing session to ModelApi API to make login request in given session. Defaults to None.
+            output_format (str, optional): Define a different output_format. Defaults to 'base64'.
+
+        Yields:
+            dict: Result dictionary containing job and progress results.
+
+        Example usage:
+            .. highlight:: python
+            .. code-block:: python
+
+            output_generator = model_api.get_api_request_generator()
+            async for output in output_generator:
+                process_output(output)
+                print(output)
+
+            Example output:
+                {
+                    'job_id': 'JID01',
+                    'success': True,
+                    'job_state': 'started'
+                },
+                {
+                    'job_id': 'JID01',
+                    'success': True,
+                    'job_state': 'processing'
+                    'progress_data': {
+                        'text': 'Example generated text',
+                        'num_generated_tokens': 55,
+                        'current_context_length': 116,
+                    },
+                    'progress': 55,                   
+                    'queue_position': 0,
+                    'estimate': 43.6
+                },
+                ...
+                {
+                    'job_id': 'JID01',
+                    'success': True,
+                    'progress': 100,
+                    'job_state': 'done',
+                    'result_data': {
+                        'text': 'Example generated final text',
+                        'num_generated_tokens': 100,
+                        'current_context_length': 116,
+                        'max_seq_len': 8000,
+                        'prompt_length': 17,
+                        'ep_version': 2,
+                        'model_name': 'Llama-3-1-70B-Instruct-fp8',
+                        'auth': 'a4004-2409c89_NVIDIA H100 NVL_0',
+                        'worker_interface_version': 'AIME-API-Worker-Interface 0.8.5',
+
+                        'result_sent_time': 1736785517.1456308,
+                        'compute_duration': 16.8,
+                        'total_duration': 17.0,
+                        'start_time': 1736785499.9088438,
+                        'start_time_compute': 1736785500.1000788,
+                        'pending_duration': 0.0004534721374511719,
+                        'preprocessing_duration': 0.07061362266540527,
+                        'arrival_time': 1736785500.1973228,
+                        'finished_time': 1736785516.8741965,
+                        'result_received_time': 1736785516.9283218
+                    }
+                } 
+
+            
+        """        
         self.setup_session(session)
         params['client_session_auth_key'] = self.client_session_auth_key
         params['wait_for_result'] = False
         result = await self.__fetch_async(f'{self.api_server}/{self.endpoint_name}', params)
         if result.get('success'):
             job_id = result['job_id']
-            yield {'job_id': job_id, 'sucess': result.get('success')}, {}
+            yield {
+                'job_id': job_id,
+                'success': result.get('success'),
+                'job_state': 'started'
+            }
             job_done = False
             now = time.time()
             while not job_done:
                 progress_result = await self.__fetch_progress_async(job_id)
-                job_done = progress_result.get('job_state') == 'done'
-                progress_info, progress_data = self.__process_progress_result(progress_result)
-                if progress_result.get('job_state') != 'canceled':
-                    yield progress_info, progress_data
+                job_state = progress_result.get('job_state')
+                job_done = job_state == 'done'
+                result, result_data = self.__process_progress_result(progress_result)
+                mode = 'result' if job_done else 'progress'
+                result[f'{mode}_data'] = result_data
+
+                if job_state != 'canceled':
+                    yield result
                     await asyncio.sleep(progress_interval)
 
 
@@ -580,7 +659,7 @@ class ModelAPI():
             progress_result (dict): Progress result dictionary received from API server
 
         Returns:
-            dict, dict: Dictionaries progress_info and progress_result {}
+            dict, dict: Dictionaries progress_info and progress_result.
         """
         progress_info = {'job_id': progress_result.get('job_id')}
         if progress_result.get('success'):
@@ -588,15 +667,17 @@ class ModelAPI():
             if job_state == 'done':
                 progress_data = progress_result['job_result']
                 progress_data['job_id'] = progress_info['job_id']
-                progress_data['success'] = progress_result['success']
-                progress_data['job_state'] = job_state
+                progress_info['success'] = progress_result['success']
+                progress_info['job_state'] = job_state
                 progress_info['progress'] = 100
             else:
                 progress = progress_result.get('progress', {})
                 progress_info['progress'] = progress.get('progress')
                 progress_info['queue_position'] = progress.get('queue_position')
                 progress_info['estimate'] = progress.get('estimate')
-                progress_data = progress.get('progress_data')
+                progress_data = progress.get('progress_data', {})
+                progress_info['job_state'] = job_state
+                progress_info['success'] = progress_result['success']
 
                 if job_state == 'canceled':
                     return progress_info, progress_data
