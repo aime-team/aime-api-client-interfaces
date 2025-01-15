@@ -104,6 +104,25 @@ class ModelAPI():
 
             asynchio.run(main())
 
+        Asynchronous generator:
+
+        .. highlight:: python
+        .. code-block:: python
+
+            import asyncio
+            from python_api_client_interface import ModelAPI
+
+            async def main():
+                model_api = modelAPI('https://api.aime.team', 'llama2_chat', 'user_name', 'user_key')
+                await model_api.do_api_login()
+                output_generator = model_api.get_api_request_generator()
+                async for output in output_generator:
+                    if not output.get('job_state') == 'done':
+                        process_progress_data(output)
+                    else:
+                        process_job_result(output)
+            asynchio.run(main())
+
     """
 
     def __init__(self, api_server, endpoint_name, user=None, key=None, session=None, output_format='base64', output_type = 'image'):
