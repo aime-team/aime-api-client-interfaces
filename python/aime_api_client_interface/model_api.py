@@ -329,15 +329,20 @@ class ModelAPI():
             dict: Result dictionary containing job and progress results.
 
         Example usage:
+
             .. highlight:: python
             .. code-block:: python
 
-            output_generator = model_api.get_api_request_generator()
-            async for output in output_generator:
-                process_output(output)
-                print(output)
+                output_generator = model_api.get_api_request_generator()
+                async for output in output_generator:
+                    process_output(output)
+                    print(output)
 
-            Example output:
+        Example output:
+
+            .. highlight:: python
+            .. code-block:: python
+
                 {
                     'job_id': 'JID01',
                     'success': True,
@@ -347,21 +352,21 @@ class ModelAPI():
                     'job_id': 'JID01',
                     'success': True,
                     'job_state': 'processing'
+                    'progress': 55,                   
+                    'queue_position': 0,
+                    'estimate': 43.6
                     'progress_data': {
                         'text': 'Example generated text',
                         'num_generated_tokens': 55,
                         'current_context_length': 116,
                     },
-                    'progress': 55,                   
-                    'queue_position': 0,
-                    'estimate': 43.6
                 },
                 ...
                 {
                     'job_id': 'JID01',
                     'success': True,
-                    'progress': 100,
                     'job_state': 'done',
+                    'progress': 100,
                     'result_data': {
                         'text': 'Example generated final text',
                         'num_generated_tokens': 100,
@@ -372,7 +377,6 @@ class ModelAPI():
                         'model_name': 'Llama-3-1-70B-Instruct-fp8',
                         'auth': 'a4004-2409c89_NVIDIA H100 NVL_0',
                         'worker_interface_version': 'AIME-API-Worker-Interface 0.8.5',
-
                         'result_sent_time': 1736785517.1456308,
                         'compute_duration': 16.8,
                         'total_duration': 17.0,
@@ -384,9 +388,7 @@ class ModelAPI():
                         'finished_time': 1736785516.8741965,
                         'result_received_time': 1736785516.9283218
                     }
-                } 
-
-            
+                }            
         """        
         self.setup_session(session)
         params['client_session_auth_key'] = self.client_session_auth_key
