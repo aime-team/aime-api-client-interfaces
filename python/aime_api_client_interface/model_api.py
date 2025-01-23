@@ -408,8 +408,7 @@ class ModelAPI():
                 job_state = progress_result.get('job_state')
                 job_done = job_state == 'done'
                 result, result_data = self.__process_progress_result(progress_result)
-                mode = 'result' if job_done else 'progress'
-                result[f'{mode}_data'] = result_data
+                result[f'{"result" if job_done else "progress"}_data'] = result_data
 
                 if job_state != 'canceled':
                     yield result
@@ -667,9 +666,9 @@ class ModelAPI():
         if progress_result.get('success'):
             job_state = progress_result.get('job_state')
             if job_state == 'done':
-                progress_data = progress_result['job_result']
+                progress_data = progress_result.get('job_result', {})
                 progress_data['job_id'] = progress_info['job_id']
-                progress_info['success'] = progress_result['success']
+                progress_info['success'] = progress_result.get('success')
                 progress_info['job_state'] = job_state
                 progress_info['progress'] = 100
             else:
@@ -679,7 +678,7 @@ class ModelAPI():
                 progress_info['estimate'] = progress.get('estimate')
                 progress_data = progress.get('progress_data', {})
                 progress_info['job_state'] = job_state
-                progress_info['success'] = progress_result['success']
+                progress_info['success'] = progress_result.get('success')
 
                 if job_state == 'canceled':
                     return progress_info, progress_data
