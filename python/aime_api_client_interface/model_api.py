@@ -8,6 +8,7 @@ import asyncio
 import requests
 import time
 import pkg_resources
+from aiohttp.client_exceptions import ServerDisconnectedError
 
 
 DEFAULT_PROGRESS_INTERVAL = 0.3
@@ -424,14 +425,15 @@ class ModelAPI():
             now = time.time()
             while not job_done:
                 progress_result = await self.__fetch_progress_async(job_id)
-                job_state = progress_result.get('job_state')
-                job_done = job_state == 'done'
-                result, result_data = self.__process_progress_result(progress_result)
-                result[f'{"result" if job_done else "progress"}_data'] = result_data
-
-                if job_state != 'canceled':
-                    yield result
-                    await asyncio.sleep(progress_interval)
+                if progress_result:
+                    job_state = progress_result.get('job_state')
+                    job_done = job_state == 'done'
+                    result, result_data = self.__process_progress_result(progress_result)
+                    result[f'{"result" if job_done else "progress"}_data'] = result_data
+                    
+                    if job_state != 'canceled':
+                        yield result
+                        await asyncio.sleep(progress_interval)
 
 
     def do_api_request(
@@ -944,21 +946,32 @@ class ModelAPI():
                     'success': True
                 }
         """
-        try:
-            url = f'{self.api_server}/{self.endpoint_name}/progress'
-            params = {
-                'client_session_auth_key': self.client_session_auth_key, 
-                'job_id': job_id
-            }
-            async with self.session.get(url, params=params) as response:
-                response_json = await response.json()
-                if response.status == 200:
-                    return response_json
-                else:
-                    return await self.__error_handler_async(response, 'progress', progress_error_callback)
+        counter = 0
+        while True:
+            counter += 1
+            try:
+                url = f'{self.api_server}/{self.endpoint_name}/progress'
+                params = {
+                    'client_session_auth_key': self.client_session_auth_key, 
+                    'job_id': job_id
+                }
+                async with self.session.get(url, params=params) as response:
+                    response_json = await response.json()
+                    if response.status == 200:
+                        return response_json
+                    else:
+                        if counter > 3:
+                            return await self.__error_handler_async(response, 'progress', progress_error_callback)
+                        else:
+                            await asyncio.sleep(1)
+                            continue
 
-        except aiohttp.client_exceptions.ClientConnectorError as error:
-            return await self.__error_handler_async(error, 'progress', progress_error_callback)
+            except aiohttp.client_exceptions.ClientConnectionError as error:
+                if counter > 3:
+                    return await self.__error_handler_async(error, 'progress', progress_error_callback)
+                else:
+                    await asyncio.sleep(1)
+                    continue
 
 
     def __fetch_progress_sync(self, job_id, progress_error_callback=None):
