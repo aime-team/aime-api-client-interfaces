@@ -126,7 +126,7 @@ class ModelAPI():
 
     """
 
-    def __init__(self, api_server, endpoint_name, user=None, key=None, session=None, output_format='base64', output_type = 'image'):
+    def __init__(self, api_server, endpoint_name, user=None, api_key=None, session=None, output_format='base64', output_type = 'image'):
         
         """
         Constructor
@@ -134,7 +134,6 @@ class ModelAPI():
         Args:
             api_server (str): The base URL of the API server
             endpoint_name (str): The name of the API endpoint
-            user (str): The name of the user
             key (str): The user related key
             session (aiohttp.ClientSession): Give existing session to ModelAPI to make upcoming requests in given session. 
                 Defaults to None.
@@ -144,8 +143,7 @@ class ModelAPI():
         """
         self.api_server = api_server
         self.endpoint_name = endpoint_name
-        self.user = user
-        self.key = key
+        self.api_key = api_key
         self.session = session
         self.client_session_auth_key = None
         self.output_format = output_format
@@ -157,20 +155,70 @@ class ModelAPI():
         await self.session.close()
 
 
+    async def init_api_key_async(self, api_key=None, error_callback=None, session=None):
+        """Initialize and validate api key.
+
+        Args:
+            api_key (str, optional): API key to be initiliazed and validated. Defaults to None.
+            error_callback (str, optional): Called in case of connection errors. Defaults to None.
+
+        Returns:
+            dict: API key validation response from Server. Example: {'success': True, 'error': None}
+        """        
+        self.api_key = api_key or self.api_key
+        url = f'{self.api_server}/api/validate_key'
+        params = {'version': ModelAPI.get_version(), 'key': self.api_key}
+        self.setup_session(session)
+        try:
+            async with self.session.get(url=url, params=params) as response:
+                response_json = await response.json()
+                if response.status == 200:
+                    return response_json
+                else:
+                    return await self.__error_handler_async(response, 'key_validation', error_callback)
+
+        except aiohttp.client_exceptions.ClientConnectorError as error:
+            return await self.__error_handler_async(error, 'key_validation', error_callback)
+
+
+    def init_api_key(self, api_key=None):
+        """Initialize and validate api key.
+
+        Args:
+            api_key (str, optional): API key to be initiliazed and validated. Defaults to None.
+
+        Returns:
+            dict: API key validation response from Server. Example: {'success': True, 'error': None}
+        """        
+        self.api_key = api_key or self.api_key
+        url = f'{self.api_server}/api/validate_key'
+        params = {'version': ModelAPI.get_version(), 'key': self.api_key}
+        try:
+            response = requests.get(url=url, params=params)
+
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return self.__error_handler_sync(response, 'key_validation', None)
+
+        except requests.exceptions.ConnectionError as error:
+            return self.__error_handler_sync(error, 'key_validation', None)
+
+
     async def do_api_login_async(
         self,
         user=None,
-        key=None,
+        api_key=None,
         result_callback=None,
         error_callback=None,
         session=None
         ):
         """
-        Asynchronous client login to API server and obtain an authentication key.
+        Asynchronous client login to API server and obtain an authentication api_key.
 
         Args:
             user (str): The name of the user
-            key (str): The user related key
+            api_key (str): The user related api_key
             result_callback (callable or coroutine): Callback function or coroutine with the obtained client_session_auth_key as argument. 
                 Accepts synchronous functions and asynchrouns couroutines. Defaults to None.
             error_callback (callable or coroutine), Callback function or coroutine for catching errors obtaining client_session_auth_key. 
@@ -183,18 +231,15 @@ class ModelAPI():
         Returns:
             str: Client session authentication key
         """
-        if not user:
-            user = self.user
-        if not key:
-            key = self.key
+        api_key = api_key or self.api_key
         self.setup_session(session)
-        self.client_session_auth_key = await self.__fetch_auth_key_async(user, key, error_callback)
+        self.client_session_auth_key = await self.__fetch_auth_key_async(user, api_key, error_callback)
         return self.client_session_auth_key
         
 
     def do_api_login(self,
         user=None,
-        key=None
+        api_key=None
         ):
         """
         Client login to API server and obtain an authentication key.
@@ -209,11 +254,8 @@ class ModelAPI():
         Returns:
             str: Client session authentication key
         """
-        if not user:
-            user = self.user
-        if not key:
-            key = self.key
-        self.client_session_auth_key = self.__fetch_auth_key(user, key)
+        api_key = api_key or self.api_key
+        self.client_session_auth_key = self.__fetch_auth_key(user, api_key)
         return self.client_session_auth_key
 
 
@@ -297,6 +339,7 @@ class ModelAPI():
         self.setup_session(session)
         url = f'{self.api_server}/{self.endpoint_name}'
         params['client_session_auth_key'] = self.client_session_auth_key
+        params['key'] = self.api_key
         params['wait_for_result'] = not progress_callback
         result = await self.__fetch_async(url, params, request_error_callback)
         if progress_callback:
@@ -412,6 +455,7 @@ class ModelAPI():
         """        
         self.setup_session(session)
         params['client_session_auth_key'] = self.client_session_auth_key
+        params['key'] = self.api_key
         params['wait_for_result'] = False
         result = await self.__fetch_async(f'{self.api_server}/{self.endpoint_name}', params)
         if result.get('success'):
@@ -504,6 +548,7 @@ class ModelAPI():
         """
         url = f'{self.api_server}/{self.endpoint_name}'
         params['client_session_auth_key'] = self.client_session_auth_key
+        params['key'] = self.api_key
         params['wait_for_result'] = not progress_callback
         result = self.__fetch_sync(url, params)
         if progress_callback:
@@ -822,7 +867,7 @@ class ModelAPI():
             return self.__error_handler_sync(error, 'API request')
 
 
-    async def __fetch_auth_key_async(self, user, key, error_callback):
+    async def __fetch_auth_key_async(self, user, api_key, error_callback):
         """
         Asynchronous retrieve of client session authentication key via route /login.
 
@@ -835,7 +880,7 @@ class ModelAPI():
             
         """
         url = f'{self.api_server}/{self.endpoint_name}/login'
-        params = {'version': ModelAPI.get_version(), 'user': user, 'key': key}
+        params = {'version': ModelAPI.get_version(), 'user': user, 'key': api_key}
         try:
             async with self.session.get(url=url, params=params) as response:
                 response_json = await response.json()
@@ -848,7 +893,7 @@ class ModelAPI():
             return await self.__error_handler_async(error, 'login', error_callback)
 
 
-    def __fetch_auth_key(self, user, key):
+    def __fetch_auth_key(self, user, api_key):
         """
         Synchronous retrieve of client session authentication key via route /login.
 
@@ -856,7 +901,7 @@ class ModelAPI():
             str: The client session authentication key.
         """
         url = f'{self.api_server}/{self.endpoint_name}/login'
-        params = {'version': ModelAPI.get_version(), 'user': user, 'key': key}
+        params = {'version': ModelAPI.get_version(), 'user': user, 'key': api_key}
         try:
             response = requests.get(url=url, params=params)
 
@@ -952,7 +997,7 @@ class ModelAPI():
             try:
                 url = f'{self.api_server}/{self.endpoint_name}/progress'
                 params = {
-                    'client_session_auth_key': self.client_session_auth_key, 
+                    'key': self.api_key, 
                     'job_id': job_id
                 }
                 async with self.session.get(url, params=params) as response:
@@ -1056,7 +1101,7 @@ class ModelAPI():
         try:
             url = f'{self.api_server}/{self.endpoint_name}/progress'
             params = {
-                'client_session_auth_key': self.client_session_auth_key, 
+                'key': self.api_key, 
                 'job_id':job_id
             }
             response = requests.get(url, params=params)
@@ -1264,7 +1309,7 @@ async def do_api_request_async(
     endpoint_name, 
     params,
     user=None,
-    key=None,
+    api_key=None,
     result_callback = None, 
     progress_callback = None,
     request_error_callback = None,
@@ -1279,7 +1324,7 @@ async def do_api_request_async(
         endpoint_name (str): The name of the API endpoint
         params (dict): Parameters for the API request
         user (str): The name of the user
-        key (str): The user related key
+        api_key (str): The user related api key
         result_callback (callback, optional): Callback function with argument result (dict) to handle the API request result. Defaults to None.
         progress_callback (callback, optional): Callback function with arguments progress_info (dict). Defaults to None.
             and progress_data (dict) for tracking progress. Defaults to None.
@@ -1396,7 +1441,7 @@ async def do_api_request_async(
             }
     """
 
-    model_api = ModelAPI(api_server, endpoint_name, user, key, session)
+    model_api = ModelAPI(api_server, endpoint_name, user, api_key, session)
     auth_key = await model_api.do_api_login_async()
     result = await model_api.do_api_request_async(
         params,
@@ -1414,7 +1459,7 @@ def do_api_request(
     endpoint_name,
     params,
     user=None,
-    key=None,
+    api_key=None,
     progress_callback = None,
     progress_error_callback = None
     ):
@@ -1425,7 +1470,7 @@ def do_api_request(
         endpoint_name (str): Name of endpoint
         params (dict): Dictionary with api request parameters
         user (str): The name of the user
-        key (str): The user related key
+        api_key (str): The user related api key
         progress_callback (callback, optional): Callback function with arguments progress_info (dict) 
             and progress_data (dict) for tracking progress. Defaults to None.
         progress_error_callback (callback, optional): Callback function with argument error_description (str) 
@@ -1519,7 +1564,7 @@ def do_api_request(
                 'success': True
             }
     """ 
-    model_api = ModelAPI(api_server, endpoint_name, user, key)
+    model_api = ModelAPI(api_server, endpoint_name, user, api_key)
     client_session_auth_key = model_api.do_api_login()
     return model_api.do_api_request(params, progress_callback, progress_error_callback)
     
