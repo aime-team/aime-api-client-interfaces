@@ -1148,7 +1148,10 @@ class ModelAPI():
         elif response_json and response_json.get('error') and 'Client session authentication key not registered in API Server' in response_json.get('error'):
             raise ConnectionRefusedError('Login failed! You first need to run do_login() to login to the API server!\n'+error_description)
         elif request_type == 'progress':
-            raise BrokenPipeError('Lost connection while receiving progress. To catch this error, use progress_error_callback')
+            raise BrokenPipeError(
+                f'Lost connection while receiving progress with error {response_json}. '
+                'To catch this error, use progress_error_callback'
+            )
         else:
             raise ConnectionError(error_description)
 
