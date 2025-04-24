@@ -577,6 +577,37 @@ class ModelAPI():
 
         return result
 
+    def get_endpoint_list(self, api_key=None, error_callback=None):
+        try:
+            response = requests.get(
+                url=f'{self.api_server}/api/endpoints',
+                params={
+                    'key': api_key
+                }
+            )
+            if response.status_code == 200:
+                return response.json().get('endpoints')
+            else:
+                return self.__error_handler_sync(response, 'get_endpoint_list', error_callback)
+
+        except requests.exceptions.ConnectionError as error:
+            return self.__error_handler_sync(error, 'get_endpoint_list', error_callback)
+
+
+    def get_endpoint_details(self, endpoint_name, error_callback=None):
+        try:
+            response = requests.get(
+                url=f'{self.api_server}/api/{endpoint_name}',
+                params={}
+            )
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return self.__error_handler_sync(response, 'get_endpoint_details', error_callback)
+
+        except requests.exceptions.ConnectionError as error:
+            return self.__error_handler_sync(error, 'get_endpoint_details', error_callback)
+
 
     def setup_session(self, session):
         """Open a new session if session is
@@ -1180,6 +1211,8 @@ class ModelAPI():
         status_code = response.status_code if hasattr(response, 'status_code') else None
         if status_code == 404:
             error_response = response.text
+        elif status_code == 401:
+            error_response = response.json().get('error')
         elif status_code is not None:
             error_response = str(response.json())
         else:
