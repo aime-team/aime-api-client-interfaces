@@ -35,7 +35,7 @@ class ModelAPI():
         .. highlight:: python
         .. code-block:: python
         
-            from python_api_client_interface import ModelAPI
+            from aime_api_client_interface import ModelAPI
             
             def progress_callback(progress_info, progress_data):
                 process_progress_info(progress_info)
@@ -54,7 +54,7 @@ class ModelAPI():
         .. code-block:: python
 
             import asyncio
-            from python_api_client_interface import ModelAPI
+            from aime_api_client_interface import ModelAPI
 
             async def result_callback(result):
                 await process_result(result)
@@ -83,7 +83,7 @@ class ModelAPI():
         .. code-block:: python
 
             import asyncio
-            from python_api_client_interface import ModelAPI
+            from aime_api_client_interface import ModelAPI
 
             sync def result_callback(result):
                 process_result(result)
@@ -111,7 +111,7 @@ class ModelAPI():
         .. code-block:: python
 
             import asyncio
-            from python_api_client_interface import ModelAPI
+            from aime_api_client_interface import ModelAPI
 
             async def main():
                 model_api = modelAPI('https://api.aime.info', 'llama3_chat', 'user_name', 'user_key')
