@@ -8,6 +8,7 @@ import asyncio
 import requests
 import time
 import pkg_resources
+import json
 
 
 DEFAULT_PROGRESS_INTERVAL = 0.3
@@ -20,61 +21,77 @@ class ModelAPI():
     Args:
         api_server (str): The base URL of the API server.
         endpoint_name (str): The name of the API endpoint.
-        session (aiohttp.ClientSession): Give existing session to ModelApi API to make login request in given session. Defaults to None.
+        user (str, optional): Username for API authentication. Defaults to None.
+        key (str, optional): API key for authentication. Defaults to None.
+        session (aiohttp.ClientSession, optional): Existing session to use for requests. Defaults to None.
+        output_format (str, optional): Format for returned data like images/audio. Options: 'base64' or 'byte_string'. Defaults to 'base64'.
+        output_type (str, optional): Type of output data like "image" or "audio". Defaults to 'image'.
 
     Attributes:
         api_server (str): The base URL of the API server.
         endpoint_name (str): The name of the specific API endpoint.
         client_session_auth_key (str): The authentication key for the client session, obtained from do_api_login.
+        user (str): Username for API authentication.
+        key (str): API key for authentication.
+        output_format (str): Format for returned data.
+        output_type (str): Type of output data.
+
+    API Parameters:
+        The params dictionary passed to do_api_request methods can include:
+        
+        Text generation:
+        - prompt_input (str): The input text/prompt to send to the model
+        - chat_context (str): JSON string containing chat history and context
+        - output_format (str): Format for output. Defaults to 'base64'
+        - top_k (int): Top-k sampling parameter. Defaults to 40
+        - top_p (float): Nucleus sampling parameter between 0-1. Defaults to 0.9 
+        - temperature (float): Sampling temperature between 0-1. Defaults to 0.8
+        - max_gen_tokens (int): Maximum tokens to generate. Defaults to 1000
+
+        Image generation:
+        - prompt (str): Text prompt describing desired image
+        - height (int): Output image height in pixels
+        - width (int): Output image width in pixels 
+        - guidance (float): Classifier guidance scale. Higher values better match prompt
+        - steps (int): Number of denoising steps. Higher values = better quality
+        - seed (int): Random seed for reproducible results. -1 for random
+        - image2image_strength (float): Blend factor for img2img. 0-1, where 1 = use only condition
+
+        Text-to-speech:
+        - text (str): Text to convert to speech
+        - language (str): Language code e.g. 'eng' for English
+        - voice (str): Voice ID to use for synthesis
+        - output_format (str): Audio format. Options: 'wav', 'mp3'. Default 'wav'
 
     Examples:
-    
         Synchronous with progress callback:
 
         .. highlight:: python
         .. code-block:: python
         
-            from python_api_client_interface import ModelAPI
-            
-            def progress_callback(progress_info, progress_data):
-                process_progress_info(progress_info)
-                process_progress_data(progress_data)
+            import json
+            from aime_api_client_interface import ModelAPI
 
-            model_api = ModelAPI('https://api.aime.team', 'llama2_chat', 'user_name', 'user_key')
+            model_api = ModelAPI('https://api.aime.info', 'llama3_chat', 'apiexample@aime.info', '181e35ac-7b7d-4bfe-9f12-153757ec3952')
             model_api.do_api_login()
-            result = model_api.do_api_request(params, progress_callback)
-            result_2 = model_api.do_api_request(params, progress_callback)
-            ...
+
+            chat_context = [
+                {"role": "user", "content": "Hi! How are you?"},
+                {"role": "assistant", "content": "I'm doing well, thank you! How can I help you today?"}
+            ]
+
+            params = {
+                "prompt_input": "Tell me a joke",
+                "chat_context": json.dumps(chat_context),
+                "top_k": 40,
+                "top_p": 0.9,
+                "temperature": 0.8,
+                "max_gen_tokens": 1000
+            }
+
+            result = model_api.do_api_request(params)
+            print("Synchronous result:", result)
             
-
-        Asynchronous with asynchronous callbacks:
-
-        .. highlight:: python
-        .. code-block:: python
-
-            import asyncio
-            from python_api_client_interface import ModelAPI
-
-            async def result_callback(result):
-                await process_result(result)
-
-            async def progress_callback(progress_info, progress_data):
-                await process_progress_info(progress_info)
-                await process_progress_data(progress_data)
-
-            async def progress_error_callback(error_description):
-                print(error_description)
-
-            async def main():
-                model_api = modelAPI('https://api.aime.team', 'llama2_chat', 'user_name', 'user_key')
-                await model_api.do_api_login()
-                result = await model_api.do_api_request(params, result_callback, progress_callback)
-                result2 = await model_api.do_api_request(params, result_callback, progress_callback)
-                ...
-                await model_api.close_session()
-
-            asynchio.run(main())
-
 
         Asynchronous with synchronous callbacks:
 
@@ -82,27 +99,47 @@ class ModelAPI():
         .. code-block:: python
 
             import asyncio
-            from python_api_client_interface import ModelAPI
+            import json
+            from aime_api_client_interface import ModelAPI
 
-            sync def result_callback(result):
-                process_result(result)
+            def result_callback(result):
+                print("Result callback:", result)
 
             def progress_callback(progress_info, progress_data):
-                process_progress_info(progress_info)
-                process_progress_data(progress_data)
+                print(f"Progress: {progress_info} - {progress_data}")
 
             def progress_error_callback(error_description):
-                print(error_description)
+                print("Error:", error_description)
 
             async def main():
-                model_api = modelAPI('https://api.aime.team', 'llama2_chat', 'user_name', 'user_key')
-                await model_api.do_api_login()
-                result = await model_api.do_api_request(params, result_callback, progress_callback)
-                result2 = await model_api.do_api_request(params, result_callback, progress_callback)
-                ...
+                model_api = ModelAPI('https://api.aime.info', 'llama3_chat', 'apiexample@aime.info', '181e35ac-7b7d-4bfe-9f12-153757ec3952')
+                await model_api.do_api_login_async()
+
+                chat_context = [
+                            {"role": "user", "content": "Hi! How are you?"},
+                            {"role": "assistant", "content": "I'm doing well, thank you! How can I help you today?"}
+                            ]
+                
+                params = {
+                    "prompt_input": "",
+                    "chat_context": json.dumps(chat_context),
+                    "top_k": 40,
+                    "top_p": 0.9,
+                    "temperature": 0.8,
+                    "max_gen_tokens": 1000
+                }
+
+                result = await model_api.do_api_request_async(
+                    params,
+                    result_callback,
+                    progress_callback,
+                    progress_error_callback
+                )
+
+                print("Async with sync callbacks result:", result)
                 await model_api.close_session()
 
-            asynchio.run(main())
+            asyncio.run(main())
 
         Asynchronous generator:
 
@@ -110,19 +147,176 @@ class ModelAPI():
         .. code-block:: python
 
             import asyncio
-            from python_api_client_interface import ModelAPI
+            import json
+            from aime_api_client_interface import ModelAPI
 
             async def main():
-                model_api = modelAPI('https://api.aime.team', 'llama2_chat', 'user_name', 'user_key')
-                await model_api.do_api_login()
-                output_generator = model_api.get_api_request_generator()
-                async for output in output_generator:
-                    if not output.get('job_state') == 'done':
-                        process_progress_data(output)
-                    else:
-                        process_job_result(output)
-            asynchio.run(main())
+                model_api = ModelAPI('https://api.aime.info', 'llama3_chat', 'apiexample@aime.info', '181e35ac-7b7d-4bfe-9f12-153757ec3952')
+                await model_api.do_api_login_async()
+                
+                chat_context = [
+                        {"role": "user", "content": "Hi! How are you?"},
+                        {"role": "assistant", "content": "I'm doing well, thank you! How can I help you today?"}
+                        ]
 
+                params = {
+                    "prompt_input": "What is the capital of Germany?",
+                    "chat_context": json.dumps(chat_context),
+                    "top_k": 40,
+                    "top_p": 0.9,
+                    "temperature": 0.8,
+                    "max_gen_tokens": 1000
+                }
+
+                try:
+                    output_generator = model_api.get_api_request_generator(params)
+                    async for progress_info, progress_data in output_generator:
+                        print("Progress info:", progress_info)
+                        print("Progress data:", progress_data)
+                        if isinstance(progress_info, dict) and progress_info.get('job_state') == 'done':
+                            print("Final result:", progress_data)
+                finally:
+                    await model_api.close_session()
+
+            asyncio.run(main())
+            
+        Image generator example:
+
+        .. highlight:: python
+        .. code-block:: python
+
+            import json
+            import base64
+            from pathlib import Path
+            from aime_api_client_interface import do_api_request
+
+            def generate_image():
+                # Define the image generation parameters
+                params = {
+                    'prompt': 'Astronaut on Mars holding a banner which states "AIME is happy to serve your model" during sunset sitting on a giant yellow rubber duck',
+                    'seed': -1,
+                    'height': 1024,
+                    'width': 1024,
+                    'steps': 50,
+                    'guidance': 3.5,
+                    'image2image_strength': 0.8,
+                    'provide_progress_images': 'none',
+                    'wait_for_result': True
+                }
+
+                # Call the AIME API
+                final = do_api_request(
+                    'https://api.aime.info',
+                    'flux-dev',
+                    params,
+                    user='apiexample@aime.info',
+                    key='181e35ac-7b7d-4bfe-9f12-153757ec3952'
+                )
+
+                # Save the images
+                images = final.get('images') or final.get('job_result', {}).get('images', [])
+                if not images:
+                    print("No images returned by the API.")
+                    return final
+                for i, img_b64 in enumerate(images):
+                    header, img_data = img_b64.split(',', 1) if ',' in img_b64 else (None, img_b64)
+                    img_bytes = base64.b64decode(img_data)
+                    filename = Path(__file__).parent / f'image_{i}.png'
+                    filename.write_bytes(img_bytes)
+                    print(f"Saved image to: {filename}")
+                print(f"\nImage generation complete. {len(images)} image(s) saved.")
+                return final
+
+            if __name__ == "__main__":
+                generate_image()
+                
+        Text-to-Speech Synchronous example:
+
+        .. highlight:: python
+        .. code-block:: python
+
+            import base64
+            from aime_api_client_interface import ModelAPI
+
+            def save_audio(audio_base64: str, output_filename: str = "output.wav"):
+                audio_data = base64.b64decode(audio_base64)
+                with open(output_filename, "wb") as f:
+                    f.write(audio_data)
+                print(f"Saved audio to: {output_filename}")
+
+            def progress_callback(progress_info, progress_data):
+                if progress_info:
+                    print(f"Progress: {progress_info}%")
+                if progress_data:
+                    print(f"Progress data: {progress_data}")
+
+            def main():
+                model_api = ModelAPI('https://api.aime.info', 'tts_tortoise', 'apiexample@aime.info', '181e35ac-7b7d-4bfe-9f12-153757ec3952')
+
+                model_api.do_api_login()
+
+                params = {
+                    "text": "Hello! This is a example of text to speech.",
+                    "language": "eng",
+                    "voice": "emma", 
+                }
+
+                result = model_api.do_api_request(
+                    params,
+                    progress_callback=progress_callback
+                )
+                
+                if result and 'audio' in result:
+                    save_audio(result['audio'])
+
+            if __name__ == "__main__":
+                main()
+                
+        Text-to-Speech Asynchronous example:
+
+        .. highlight:: python
+        .. code-block:: python
+
+            import asyncio
+            import base64
+            from aime_api_client_interface import ModelAPI
+
+            def save_audio(audio_base64: str, output_filename: str = "output.wav"):
+                audio_data = base64.b64decode(audio_base64)
+                with open(output_filename, "wb") as f:
+                    f.write(audio_data)
+                print(f"Saved audio to: {output_filename}")
+
+            def progress_callback(progress_info, progress_data):
+                if progress_info:
+                    print(f"Progress: {progress_info}")
+                if progress_data:
+                    print(f"Progress data: {progress_data}")
+
+            async def main():
+                model_api = ModelAPI('https://api.aime.info', 'tts_tortoise', 'apiexample@aime.info', '181e35ac-7b7d-4bfe-9f12-153757ec3952')
+
+                await model_api.do_api_login_async()
+
+                params = {
+                    "text": "This is an asynchronous text to speech example.",
+                    "language": "eng",
+                    "voice": "emma"
+                }
+                async def result_callback(result):
+                    if result and 'audio' in result:
+                        save_audio(result['audio'], "output_async.wav")
+                
+                await model_api.do_api_request_async(
+                    params,
+                    result_callback=result_callback,
+                    progress_callback=progress_callback
+                )
+
+                await model_api.close_session()
+
+            if __name__ == "__main__":
+                asyncio.run(main())
     """
 
     def __init__(self, api_server, endpoint_name, user=None, key=None, session=None, output_format='base64', output_type = 'image'):
@@ -723,7 +917,7 @@ class ModelAPI():
             url (str): The URL for the HTTP request.
             params (dict): Parameters for the HTTP request.
             error_callback (callable or coroutine, optional): Callback function or coroutine with argument error_description (str) for catching 
-                errors. Accepts synchronous functions and asynchronous couroutines. Defaults to None.
+                errors. Accepts synchronous functions and asynchrouns couroutines. Defaults to None.
             do_post (bool, optional): Whether to use a POST request. Defaults to True.
 
         Returns:
@@ -909,7 +1103,7 @@ class ModelAPI():
                         'progress': 50,
                         'progress_data': {
                             'images': ['base64-string', 'base64-string', ...]
-                            'text': 'Test output'
+                            'text': 'Test outpu'
                         },
                         'queue_position': 0
                     },
@@ -1004,7 +1198,7 @@ class ModelAPI():
                         'progress_data': {
                             'info': 'infos from worker about progress',
                             'images': 'base64-string',
-                            'text': 'Test output'
+                            'text': 'Test outpu'
                         },
                         'queue_position': 0
                     },
@@ -1348,7 +1542,7 @@ async def do_api_request_async(
                     'progress': 50,
                     'progress_data': {
                         'images': 'base64-string',
-                        'text': 'Test output'
+                        'text': 'Test outpu'
                     },
                     'queue_position': 0
                 },
@@ -1472,7 +1666,7 @@ def do_api_request(
                     'progress': 50,
                     'progress_data': {
                         'images': 'base64-string',
-                        'text': 'Test output'
+                        'text': 'Test outpu'
                     },
                     'queue_position': 0
                 },
