@@ -17,6 +17,6 @@ To verify the installation, you can run a simple test:
 
     from aime_api_client_interface import ModelAPI
 
-    model_api = ModelAPI('https://api.aime.info', 'llama3_chat')
+    model_api = ModelAPI('https://api.aime.info', 'llama4_chat')
     version = ModelAPI.get_version()
     print(f"AIME API Client Interface version: {version}")

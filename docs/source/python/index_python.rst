@@ -12,9 +12,10 @@ Interface to connect your client with an AIME API Server
 
 **Examples**
 
-.. include:: ../../../python/aime_api_client_interface/model_api.py
-   :start-after: Examples:
-   :end-before: """
+.. toctree::
+   :maxdepth: 2
+
+   examples
 
 .. toctree::
    :maxdepth: 0
@@ -22,8 +23,6 @@ Interface to connect your client with an AIME API Server
 
    Setup <setup>
    Documentation <python_api_client_interface>
-   Examples <examples>
-   
 
 .. note::
 
