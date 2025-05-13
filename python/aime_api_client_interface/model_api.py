@@ -8,11 +8,7 @@ import asyncio
 import requests
 import time
 import pkg_resources
-<<<<<<< HEAD
-from aiohttp.client_exceptions import ServerDisconnectedError
-=======
 import json
->>>>>>> 6884599809624ab49200a251e8be41d2708913ea
 
 
 DEFAULT_PROGRESS_INTERVAL = 0.3

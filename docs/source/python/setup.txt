@@ -7,9 +7,9 @@ The Python API interface is available as a Pip package, which can be installed w
     pip install "git+https://github.com/aime-team/aime-api-client-interfaces.git#subdirectory=python"
 
 Dependencies:
-- Python 3.8 or higher
-- aiohttp for asynchronous HTTP requests
-- requests for synchronous HTTP requests
+  * Python 3.8 or higher
+  * aiohttp for asynchronous HTTP requests
+  * requests for synchronous HTTP requests
 
 To verify the installation, you can run a simple test:
 

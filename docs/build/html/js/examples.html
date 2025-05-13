@@ -21,7 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Documentation AIME JavaScript Client Interface" href="js_api_client_interface.html" /> 
+    <link rel="next" title="Documentation AIME API JavaScript Client Interface" href="js_api_client_interface.html" />
+    <link rel="prev" title="Setup AIME JavaScript API Client Interface" href="setup.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,8 +48,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../python/index_python.html">Python</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index_js.html">JavaScript</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="setup.html">Setup</a></li>
-<li class="toctree-l2"><a class="reference internal" href="js_api_client_interface.html">Documentation</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="js_api_client_interface.html">Documentation</a></li>
 </ul>
 </li>
 </ul>
@@ -80,16 +81,29 @@
              
   <section id="examples-javascript-api-client-interface">
 <h1>Examples JavaScript API Client Interface<a class="headerlink" href="#examples-javascript-api-client-interface" title="Link to this heading"></a></h1>
-<p>#.. include:: ../../../js/model_api.js
-#   :start-after: Examples:
-#   :end-before: “””</p>
+<p>Simple single call example:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;/js/model_api.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="kd">function</span><span class="w"> </span><span class="nx">onResultCallback</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">text</span><span class="p">)</span><span class="w"> </span><span class="c1">// print generated text to console</span>
+<span class="p">}</span>
+
+<span class="nx">params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Object</span><span class="p">({</span>
+<span class="w">    </span><span class="nx">text</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Your text prompt&#39;</span>
+<span class="p">});</span>
+
+<span class="nx">doAPIRequest</span><span class="p">(</span><span class="s1">&#39;llama2_chat&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">params</span><span class="p">,</span><span class="w"> </span><span class="nx">onResultCallback</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;user_name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;user_key&#39;</span><span class="p">);</span>
+<span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</pre></div>
+</div>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="js_api_client_interface.html" class="btn btn-neutral float-left" title="Documentation AIME JavaScript Client Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="setup.html" class="btn btn-neutral float-left" title="Setup AIME JavaScript API Client Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="js_api_client_interface.html" class="btn btn-neutral float-right" title="Documentation AIME API JavaScript Client Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

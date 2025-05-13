@@ -10,18 +10,12 @@ Interface to connect your client with an AIME API Server
 
    .. include:: setup.txt
 
-**Examples**
-
-.. toctree::
-   :maxdepth: 2
-
-   examples
-
 .. toctree::
    :maxdepth: 0
    :hidden:
 
    Setup <setup>
+   Examples <examples>
    Documentation <python_api_client_interface>
 
 .. note::

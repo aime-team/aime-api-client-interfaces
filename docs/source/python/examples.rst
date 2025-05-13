@@ -1,6 +1,6 @@
 .. Copyright (c) AIME GmbH and affiliates. Find more info at https://www.aime.info/api
    This software may be used and distributed according to the terms of the AIME COMMUNITY LICENSE AGREEMENT
-
+   
 ==============
 Chat Examples
 ==============
@@ -62,3 +62,4 @@ Example showing asynchronous text-to-speech generation using the AIME API client
    :language: python
    :linenos:
    :caption: tts_async_example.py
+
