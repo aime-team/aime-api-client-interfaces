@@ -27,8 +27,3 @@ Interface to connect your client with an AIME API Server
 .. note::
 
    This project is under active development.
-
-
-
-
-

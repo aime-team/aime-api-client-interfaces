@@ -2,10 +2,19 @@ import asyncio
 import json
 from aime_api_client_interface import ModelAPI
 
+async def result_callback(result):
+    print("Async result callback:", result)
+
+async def progress_callback(progress_info, progress_data):
+    print(f"Async progress: {progress_info} - {progress_data}") Example of async operation
+
+async def progress_error_callback(error_description):
+    print("Async error:", error_description)
+
 async def main():
     model_api = ModelAPI('https://api.aime.info', 'llama3_chat', 'apiexample@aime.info', '181e35ac-7b7d-4bfe-9f12-153757ec3952')
     await model_api.do_api_login_async()
-    
+
     chat_context = [
         {"role": "user", "content": "Hi! How are you?"},
         {"role": "assistant", "content": "I'm doing well, thank you! How can I help you today?"}
@@ -20,19 +29,15 @@ async def main():
         "max_gen_tokens": 1000
     }
 
-    output_generator = model_api.get_api_request_generator(params)
-    
-    try:
-        async for progress in output_generator:
-            if isinstance(progress, tuple) and len(progress) == 2:
-                progress_info, progress_data = progress
-                print(f"Progress: {progress_info} - {progress_data}")
-            else:
-                print(f"Progress: {progress}")
-    except Exception as e:
-        print(f"Error occurred: {e}")
-    finally:
-        await model_api.close_session()
+    result = await model_api.do_api_request_async(
+        params,
+        result_callback,
+        progress_callback,
+        progress_error_callback
+    )
+
+    print("Async with async callbacks result:", result)
+    await model_api.close_session()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main()) 

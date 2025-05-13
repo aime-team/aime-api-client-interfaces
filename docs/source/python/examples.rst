@@ -19,6 +19,13 @@ Example showing asynchronous usage with callbacks for progress monitoring.
    :linenos:
    :caption: async_callbacks_example.py
 
+Example showing asynchronous usage with asynchronous callbacks for progress monitoring.
+
+.. literalinclude:: ../../../python/examples/async_callbacks_async_example.py
+   :language: python
+   :linenos:
+   :caption: async_callbacks_async_example.py
+
 Example showing asynchronous generator usage for streaming responses.
 
 .. literalinclude:: ../../../python/examples/async_generator_example.py
