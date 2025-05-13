@@ -1,8 +1,22 @@
- 
-The Python API interface is available as Pip package, which can be installed with following commands:
+The Python API interface is available as a Pip package, which can be installed with the following commands:
 
-.. highlight:: shell
 .. code-block:: shell
-    
+
     pip install wheel
-    pip install "git+https://github.com//aime-team/aime-api-client-interfaces.git#subdirectory=python"
+    pip install aiohttp
+    pip install "git+https://github.com/aime-team/aime-api-client-interfaces.git#subdirectory=python"
+
+Dependencies:
+- Python 3.8 or higher
+- aiohttp for asynchronous HTTP requests
+- requests for synchronous HTTP requests
+
+To verify the installation, you can run a simple test:
+
+.. code-block:: python
+
+    from aime_api_client_interface import ModelAPI
+
+    model_api = ModelAPI('https://api.aime.info', 'llama4_chat')
+    version = ModelAPI.get_version()
+    print(f"AIME API Client Interface version: {version}")

@@ -14,8 +14,8 @@ Interface to connect your client with an AIME API Server
 **Examples**
 
 .. include:: ../../../js/model_api.js
-   :start-after: Examples:
-   :end-before: """
+   :start-after: /*
+   :end-before: */
 
 .. toctree::
    :maxdepth: 0

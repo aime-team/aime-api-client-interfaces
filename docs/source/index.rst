@@ -6,7 +6,6 @@ AIME API Client Interfaces
 
 Interfaces to connect your client with an AIME API Server
 
-
 .. toctree::
    :maxdepth: 0
    :hidden:

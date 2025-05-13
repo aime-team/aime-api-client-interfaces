@@ -8,7 +8,11 @@ import asyncio
 import requests
 import time
 import pkg_resources
+<<<<<<< HEAD
 from aiohttp.client_exceptions import ServerDisconnectedError
+=======
+import json
+>>>>>>> 6884599809624ab49200a251e8be41d2708913ea
 
 
 DEFAULT_PROGRESS_INTERVAL = 0.3
@@ -21,108 +25,48 @@ class ModelAPI():
     Args:
         api_server (str): The base URL of the API server.
         endpoint_name (str): The name of the API endpoint.
-        session (aiohttp.ClientSession): Give existing session to ModelApi API to make login request in given session. Defaults to None.
+        user (str, optional): Username for API authentication. Defaults to None.
+        key (str, optional): API key for authentication. Defaults to None.
+        session (aiohttp.ClientSession, optional): Existing session to use for requests. Defaults to None.
+        output_format (str, optional): Format for returned data like images/audio. Options: 'base64' or 'byte_string'. Defaults to 'base64'.
+        output_type (str, optional): Type of output data like "image" or "audio". Defaults to 'image'.
 
     Attributes:
         api_server (str): The base URL of the API server.
         endpoint_name (str): The name of the specific API endpoint.
         client_session_auth_key (str): The authentication key for the client session, obtained from do_api_login.
+        user (str): Username for API authentication.
+        key (str): API key for authentication.
+        output_format (str): Format for returned data.
+        output_type (str): Type of output data.
 
-    Examples:
-    
-        Synchronous with progress callback:
-
-        .. highlight:: python
-        .. code-block:: python
+    API Parameters:
+        The params dictionary passed to do_api_request methods which are defined in the input configuration of each endpoint.
+        They can be e.g.:
         
-            from aime_api_client_interface import ModelAPI
-            
-            def progress_callback(progress_info, progress_data):
-                process_progress_info(progress_info)
-                process_progress_data(progress_data)
+        Text generation:
+            - prompt_input (str): The input text/prompt to send to the model
+            - chat_context (str): JSON string containing chat history and context
+            - output_format (str): Format for output. Defaults to 'base64'
+            - top_k (int): Top-k sampling parameter. Defaults to 40
+            - top_p (float): Nucleus sampling parameter between 0-1. Defaults to 0.9 
+            - temperature (float): Sampling temperature between 0-1. Defaults to 0.8
+            - max_gen_tokens (int): Maximum tokens to generate. Defaults to 1000
 
-            model_api = ModelAPI('https://api.aime.info', 'llama3_chat', 'user_name', 'user_key')
-            model_api.do_api_login()
-            result = model_api.do_api_request(params, progress_callback)
-            result_2 = model_api.do_api_request(params, progress_callback)
-            ...
-            
+        Image generation:
+            - prompt (str): Text prompt describing desired image
+            - height (int): Output image height in pixels
+            - width (int): Output image width in pixels 
+            - guidance (float): Classifier guidance scale. Higher values better match prompt
+            - steps (int): Number of denoising steps. Higher values = better quality
+            - seed (int): Random seed for reproducible results. -1 for random
+            - image2image_strength (float): Blend factor for img2img. 0-1, where 1 = use only condition
 
-        Asynchronous with asynchronous callbacks:
-
-        .. highlight:: python
-        .. code-block:: python
-
-            import asyncio
-            from aime_api_client_interface import ModelAPI
-
-            async def result_callback(result):
-                await process_result(result)
-
-            async def progress_callback(progress_info, progress_data):
-                await process_progress_info(progress_info)
-                await process_progress_data(progress_data)
-
-            async def progress_error_callback(error_description):
-                print(error_description)
-
-            async def main():
-                model_api = modelAPI('https://api.aime.info', 'llama3_chat', 'user_name', 'user_key')
-                await model_api.do_api_login()
-                result = await model_api.do_api_request(params, result_callback, progress_callback)
-                result2 = await model_api.do_api_request(params, result_callback, progress_callback)
-                ...
-                await model_api.close_session()
-
-            asynchio.run(main())
-
-
-        Asynchronous with synchronous callbacks:
-
-        .. highlight:: python
-        .. code-block:: python
-
-            import asyncio
-            from aime_api_client_interface import ModelAPI
-
-            sync def result_callback(result):
-                process_result(result)
-
-            def progress_callback(progress_info, progress_data):
-                process_progress_info(progress_info)
-                process_progress_data(progress_data)
-
-            def progress_error_callback(error_description):
-                print(error_description)
-
-            async def main():
-                model_api = modelAPI('https://api.aime.info', 'llama3_chat', 'user_name', 'user_key')
-                await model_api.do_api_login()
-                result = await model_api.do_api_request(params, result_callback, progress_callback)
-                result2 = await model_api.do_api_request(params, result_callback, progress_callback)
-                ...
-                await model_api.close_session()
-
-            asynchio.run(main())
-
-        Asynchronous generator:
-
-        .. highlight:: python
-        .. code-block:: python
-
-            import asyncio
-            from aime_api_client_interface import ModelAPI
-
-            async def main():
-                model_api = modelAPI('https://api.aime.info', 'llama3_chat', 'user_name', 'user_key')
-                await model_api.do_api_login()
-                output_generator = model_api.get_api_request_generator()
-                async for output in output_generator:
-                    if not output.get('job_state') == 'done':
-                        process_progress_data(output)
-                    else:
-                        process_job_result(output)
-            asynchio.run(main())
+        Text-to-speech:
+            - text (str): Text to convert to speech
+            - language (str): Language code e.g. 'eng' for English
+            - voice (str): Voice ID to use for synthesis
+            - output_format (str): Audio format. Options: 'wav', 'mp3'. Default 'wav'
 
     """
 
@@ -801,7 +745,7 @@ class ModelAPI():
             url (str): The URL for the HTTP request.
             params (dict): Parameters for the HTTP request.
             error_callback (callable or coroutine, optional): Callback function or coroutine with argument error_description (str) for catching 
-                errors. Accepts synchronous functions and asynchronous couroutines. Defaults to None.
+                errors. Accepts synchronous functions and asynchrouns couroutines. Defaults to None.
             do_post (bool, optional): Whether to use a POST request. Defaults to True.
 
         Returns:
@@ -987,7 +931,7 @@ class ModelAPI():
                         'progress': 50,
                         'progress_data': {
                             'images': ['base64-string', 'base64-string', ...]
-                            'text': 'Test output'
+                            'text': 'Test outpu'
                         },
                         'queue_position': 0
                     },
@@ -1093,7 +1037,7 @@ class ModelAPI():
                         'progress_data': {
                             'info': 'infos from worker about progress',
                             'images': 'base64-string',
-                            'text': 'Test output'
+                            'text': 'Test outpu'
                         },
                         'queue_position': 0
                     },
@@ -1442,7 +1386,7 @@ async def do_api_request_async(
                     'progress': 50,
                     'progress_data': {
                         'images': 'base64-string',
-                        'text': 'Test output'
+                        'text': 'Test outpu'
                     },
                     'queue_position': 0
                 },
@@ -1566,7 +1510,7 @@ def do_api_request(
                     'progress': 50,
                     'progress_data': {
                         'images': 'base64-string',
-                        'text': 'Test output'
+                        'text': 'Test outpu'
                     },
                     'queue_position': 0
                 },
