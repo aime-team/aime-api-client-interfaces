@@ -8,7 +8,7 @@ Interface to connect your client with an AIME API Server
 
 **Setup**
 
-   .. include:: setup.txt
+   .. include:: setup.rst
 
 
 **Examples**

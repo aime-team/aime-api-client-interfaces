@@ -2,5 +2,5 @@
    This software may be used and distributed according to the terms of the AIME COMMUNITY LICENSE AGREEMENT
    
 Setup AIME JavaScript API Client Interface
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. include:: setup.txt
