@@ -1,4 +1,43 @@
+The JavaScript client interface is contained in a single file: **model_api.js**
 
-The Javascript client interface is contained in a single js file: **model_api.js**
+Node.js Installation
+---------------------
 
-For cross-site scripting security reasons and to fulfil the same-origin policy of web browsers, it is easiest to host a copy of the file on the web server the HTML files are served from.
+To use the JavaScript client with Node.js, you'll need:
+
+1. Node.js (v14 or later recommended)
+2. npm (Node Package Manager) - comes with Node.js
+
+Install the required dependencies:
+
+.. code-block:: bash
+
+    cd js
+    npm install
+
+Browser Usage
+--------------
+
+For browser usage, include the `model_api.js` file in your HTML:
+
+.. code-block:: html
+
+    <script src="path/to/model_api.js"></script>
+    <script>
+    // Your code using the ModelAPI class
+    </script>
+
+.. note::
+    When using in a browser, you'll need to handle CORS (Cross-Origin Resource Sharing) appropriately on your server.
+
+Running Examples
+-----------------
+
+Examples can be found in the `examples` directory. To run an example:
+
+.. code-block:: bash
+
+    node examples/synchronous_example.js
+
+.. note::
+    Make sure to update the API credentials in each example file before running them.
