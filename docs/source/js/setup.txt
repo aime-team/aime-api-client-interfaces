@@ -1,19 +1,17 @@
 The JavaScript client interface is contained in a single file: **model_api.js**
 
-Node.js Installation
----------------------
+Node.js Usage
+--------------
 
-To use the JavaScript client with Node.js, you'll need:
+To use the AIME API with Node.js, you'll need:
 
-1. Node.js (v14 or later recommended)
-2. npm (Node Package Manager) - comes with Node.js
+- Node.js (v14 or later recommended)
 
-Install the required dependencies:
+To use the AIME API include the `model_api.js` in your JS file:
 
-.. code-block:: bash
+.. code-block:: html
 
-    cd js
-    npm install
+    const { doAPIRequest } = require('../model_api');
 
 Browser Usage
 --------------

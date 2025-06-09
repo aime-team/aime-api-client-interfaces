@@ -1,21 +1,14 @@
 .. Copyright (c) AIME GmbH and affiliates. Find more info at https://www.aime.info/api
    This software may be used and distributed according to the terms of the AIME COMMUNITY LICENSE AGREEMENT
    
-AIME JavaScript API Client Interface
+AIME API JavaScript Client Interface
 ====================================
 
 Interface to connect your client with an AIME API Server
 
 **Setup**
 
-   .. include:: setup.rst
-
-
-**Examples**
-
-.. include:: ../../../js/model_api.js
-   :start-after: /*
-   :end-before: */
+   .. include:: setup.txt
 
 .. toctree::
    :maxdepth: 0
@@ -29,7 +22,3 @@ Interface to connect your client with an AIME API Server
 .. note::
 
    This project is under active development.
-
-
-
-
