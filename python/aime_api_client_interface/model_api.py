@@ -578,6 +578,15 @@ class ModelAPI():
         return result
 
     def get_endpoint_list(self, api_key=None, error_callback=None):
+        """Retrieve list of all available endpoints. If API key is given, only the endpoints with request permission are listed.
+
+        Args:
+            api_key (str, optional): The user related api_key to show only endpoints with request permission. Defaults to None.
+            error_callback (callable, optional): If given, no error is raised. Defaults to None.
+
+        Returns:
+            list[str]: List containing the endpoint names.
+        """        
         try:
             response = requests.get(
                 url=f'{self.api_server}/api/endpoints',
@@ -595,6 +604,125 @@ class ModelAPI():
 
 
     def get_endpoint_details(self, endpoint_name, error_callback=None):
+        """Get endpoint details about given endpoint name.
+
+        Args:
+            endpoint_name (str): Name of the endpoint
+            error_callback (callable, optional): If given, no error is raised. Defaults to None.
+
+        Returns:
+            dict: Detailed information about the given endpoint.
+
+        Examples:
+
+            .. highlight:: python
+            .. code-block:: python
+
+                endpoint_details = {
+                    'name': 'llama3_chat',
+                    'title': 'LLama 3.x Chat',
+                    'description': 'Llama 3.x Instruct Chat example API',
+                    'http_methods': ['GET', 'POST'],
+                    'version': 2,
+                    'max_queue_length': 1000,
+                    'max_time_in_queue': 3600,
+                    'free_queue_slots': 1000,
+                    'category': 'chat', 
+                    'num_active_workers': 1,
+                    'num_workers': 1,
+                    'workers': [
+                        {
+                            'name': 'hostname#0_2xNVIDIA_GeForce_RTX_3090',
+                            'state': 'online',
+                            'max_batch_size': 128,
+                            'free_slots': worker.free_slots,
+                            'model': {
+                                'label': 'Meta-Llama-3-8B-Instruct',
+                                'quantization': 'fp16',
+                                'size': '8B',
+                                'family': 'Llama',
+                                'type': 'LLM',
+                                'repo_name': 'Meta-Llama-3-8B-Instruct'
+                            }
+                        }
+                    ],
+                    'parameter_description': {
+                        'input': {
+                            'prompt_input': {
+                                'type': 'string',
+                                'default': '',
+                                'required': False
+                            }, 
+                            'chat_context': {
+                                'type': 'json',
+                                'default': '',
+                                'required': False
+                                }, 
+                            'top_k': {
+                                'type': 'integer',
+                                'minimum': 1,
+                                'maximum': 1000,
+                                'default': 40
+                            },
+                            'top_p': {
+                                'type': 'float',
+                                'minimum': 0.0,
+                                'maximum': 1.0,
+                                'default': 0.9
+                            },
+                            'temperature': {
+                                'type': 'float',
+                                'minimum': 0.0,
+                                'maximum': 1.0,
+                                'default': 0.8
+                            }, 
+                            'max_gen_tokens': {
+                                'type': 'integer',
+                                'default': 2000
+                            },
+                            'wait_for_result': {
+                                'type': 'bool'
+                            }
+                        }, 
+                        'output': {
+                            'text': {
+                                'type': 'string'
+                            },
+                            'num_generated_tokens': {
+                                'type': 'integer'
+                            },
+                            'model_name': {
+                                'type': 'string'
+                            },
+                            'max_seq_len': {
+                                'type': 'integer'
+                            },
+                            'current_context_length': {
+                                'type': 'integer'
+                            },
+                            'error': {
+                                'type': 'string'
+                            },
+                            'prompt_length': {
+                                'type': 'integer'
+                            }
+                        },
+                        'progress': {
+                            'OUTPUTS': {
+                                'text': {
+                                    'type': 'string'
+                                },
+                                'num_generated_tokens': {
+                                    'type': 'integer'
+                                },
+                                'current_context_length': {
+                                    'type': 'integer'
+                                }
+                            }
+                        }
+                    }
+                }
+        """        
         try:
             response = requests.get(
                 url=f'{self.api_server}/api/{endpoint_name}',
