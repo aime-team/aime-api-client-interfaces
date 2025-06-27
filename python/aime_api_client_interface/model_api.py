@@ -635,7 +635,9 @@ class ModelAPI():
                             'name': 'hostname#0_2xNVIDIA_GeForce_RTX_3090',
                             'state': 'online',
                             'max_batch_size': 128,
-                            'free_slots': worker.free_slots,
+                            'free_slots': 128,
+                            'gpu_name': NVIDIA_GeForce_RTX_3090,
+                            'num_gpus': 2,
                             'model': {
                                 'label': 'Meta-Llama-3-8B-Instruct',
                                 'quantization': 'fp16',
