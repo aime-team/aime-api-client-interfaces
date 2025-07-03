@@ -633,7 +633,7 @@ class ModelAPI():
                     'workers': [
                         {
                             'name': 'hostname#0_2xNVIDIA_GeForce_RTX_3090',
-                            'state': 'online',
+                            'state': 'waiting',
                             'max_batch_size': 128,
                             'free_slots': 128,
                             'gpu_name': NVIDIA_GeForce_RTX_3090,
@@ -727,7 +727,7 @@ class ModelAPI():
         """        
         try:
             response = requests.get(
-                url=f'{self.api_server}/api/{endpoint_name}',
+                url=f'{self.api_server}/api/endpoints/{endpoint_name}',
                 params={}
             )
             if response.status_code == 200:
