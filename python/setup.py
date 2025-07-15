@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='aime-api-client-interface',
-    version='0.8.9',
+    version='0.9.0',
     author='AIME',
     author_email='carlo@aime.info',
     packages=['aime_api_client_interface'],

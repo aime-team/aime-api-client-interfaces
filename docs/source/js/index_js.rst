@@ -4,7 +4,7 @@
 AIME API JavaScript Client Interface
 ====================================
 
-Interface to connect your client with an AIME API Server
+A Javascript interface to connect your client with an AIME API server
 
 **Setup**
 
