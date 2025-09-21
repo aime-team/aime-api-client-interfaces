@@ -17,22 +17,37 @@ class ModelAPI {
     * @param {string} endpointName - The name of the API endpoint.
     * @param {string} user - api user
     * @param {sting} apiKey - api Key required to authenticate and authorize to use api endpoint    * 
-    * @param {number} [defaultProgressIntervall=300] - The intervall for progress updates in milliseconds. The default progress update intervall is 300.
+    * @param {object} options {
+    *           defaultProgressIntervall: 300, - The intervall for progress updates in milliseconds. The default progress update intervall is 300.
+    *           apiServerUrl: 'https://api.aime.info/', - set URL to API servers 
+    *        }
     */
-    constructor(endpointName, user, apiKey, defaultProgressIntervall = 300, api_server_url = null) {
-        this.api_server_url = 'https://api.aime.info/'
-        if( api_server_url ) {
-            this.api_server_url = api_server_url;
-            if(!this.api_server_url.endsWith('/'))
-            {
-                this.api_server_url += "/";
-            }
-        }
+    constructor(endpointName, user, apiKey, options = {}) {
         this.endpointName = endpointName;        
         this.user = user;
         this.apiKey = apiKey;
         this.clientSessionAuthKey = null;
-        this.defaultProgressIntervall = defaultProgressIntervall;
+        this.apiServerUrl = 'https://api.aime.info/';
+        this.defaultProgressIntervall = 300;
+
+        if( typeof options == 'object')
+        {
+            if( options['apiServerUrl'] ) {
+                this.apiServerUrl = options['apiServerUrl'];
+                if(!this.apiServerUrl.endsWith('/'))
+                {
+                    this.apiServerUrl += "/";
+                }
+            }
+            if( options['defaultProgressIntervall'] ) {
+                this.defaultProgressIntervall = options['defaultProgressIntervall'];
+            }
+        }
+        else if( typeof options == 'number')
+        {
+            // legacy support, if 3rd parameter is an inter it was interpreted as defaultProgressIntervall
+            this.defaultProgressIntervall = options;
+        }
     }
 
     /**
@@ -43,7 +58,7 @@ class ModelAPI {
      */
     async fetchAuthKey() {
         
-        const response = await this.fetchAsync(`${this.api_server_url}${this.endpointName}/login?user=${this.user}&key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`);
+        const response = await this.fetchAsync(`${this.apiServerUrl}${this.endpointName}/login?user=${this.user}&key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`);
         
         if (response.success) {
             return response.client_session_auth_key;
@@ -93,7 +108,7 @@ class ModelAPI {
         }
         try {
                 const response = await this.fetchAsync(
-                    `${this.api_server_url}api/validate_key?key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`, false
+                    `${this.apiServerUrl}api/validate_key?key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`, false
                 );
                 if (response.success) {
                     if (resultCallback && typeof resultCallback === 'function') {
@@ -161,7 +176,7 @@ class ModelAPI {
      * @param {boolean} [progressStream=false] - Specifies whether the progress should be streamed (default: false). Attention: The stream feature is not yet fully implemented.
      */
     async doAPIRequest(params, resultCallback, progressCallback = null, progressStream = false) {
-        const url = `${this.api_server_url}${this.endpointName}`;
+        const url = `${this.apiServerUrl}${this.endpointName}`;
         console.log(`URL: ${url}`);
 
         params = await this.stringifyObjects(params)
@@ -207,7 +222,7 @@ class ModelAPI {
     async setupProgressStream(jobID, resultCallback, progressCallback) {
         console.error('Error: The stream feature is not yet fully implemented. Please call doAPIRequest() without progressStream=true.');
         alert('Attention: The stream feature is not yet fully implemented. Please call doAPIRequest() without progressStream=true.')
-        const eventSourceURL = `${this.api_server_url}stream_progress?client_session_auth_key=${encodeURIComponent(this.clientSessionAuthKey)}&job_id=${encodeURIComponent(jobID)}`;
+        const eventSourceURL = `${this.apiServerUrl}stream_progress?client_session_auth_key=${encodeURIComponent(this.clientSessionAuthKey)}&job_id=${encodeURIComponent(jobID)}`;
         const eventSource = new EventSource(eventSourceURL);
 
         eventSource.onmessage = (event) => {
@@ -242,7 +257,7 @@ class ModelAPI {
      * @param {function} progressCallback - The callback for progress updates.
      */
     async pollProgress(url, jobID, resultCallback, progressCallback) {
-        const progressURL = `${this.api_server_url}${this.endpointName}/progress?key=${encodeURIComponent(this.apiKey)}&job_id=${encodeURIComponent(jobID)}`;
+        const progressURL = `${this.apiServerUrl}${this.endpointName}/progress?key=${encodeURIComponent(this.apiKey)}&job_id=${encodeURIComponent(jobID)}`;
 
         const fetchProgress = async (progressURL) => {
             try {
