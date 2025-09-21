@@ -9,7 +9,7 @@
  */
 class ModelAPI {
 
-    static version = 'JavaScript AIME API Client Interface 0.8.5';
+    static version = 'JavaScript AIME API Client Interface 0.9.0';
     
     /**
     * Constructor of the class.
@@ -19,8 +19,16 @@ class ModelAPI {
     * @param {sting} apiKey - api Key required to authenticate and authorize to use api endpoint    * 
     * @param {number} [defaultProgressIntervall=300] - The intervall for progress updates in milliseconds. The default progress update intervall is 300.
     */
-    constructor(endpointName, user, apiKey, defaultProgressIntervall = 300) {
-        this.endpointName = endpointName;
+    constructor(endpointName, user, apiKey, defaultProgressIntervall = 300, api_server_url = null) {
+        this.api_server_url = 'https://api.aime.info/'
+        if( api_server_url ) {
+            this.api_server_url = api_server_url;
+            if(!this.api_server_url.endsWith('/'))
+            {
+                this.api_server_url += "/";
+            }
+        }
+        this.endpointName = endpointName;        
         this.user = user;
         this.apiKey = apiKey;
         this.clientSessionAuthKey = null;
@@ -35,7 +43,7 @@ class ModelAPI {
      */
     async fetchAuthKey() {
         
-        const response = await this.fetchAsync(`/${this.endpointName}/login?user=${this.user}&key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`);
+        const response = await this.fetchAsync(`${this.api_server_url}${this.endpointName}/login?user=${this.user}&key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`);
         
         if (response.success) {
             return response.client_session_auth_key;
@@ -85,7 +93,7 @@ class ModelAPI {
         }
         try {
                 const response = await this.fetchAsync(
-                    `/api/validate_key?key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`, false
+                    `${this.api_server_url}api/validate_key?key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`, false
                 );
                 if (response.success) {
                     if (resultCallback && typeof resultCallback === 'function') {
@@ -153,9 +161,8 @@ class ModelAPI {
      * @param {boolean} [progressStream=false] - Specifies whether the progress should be streamed (default: false). Attention: The stream feature is not yet fully implemented.
      */
     async doAPIRequest(params, resultCallback, progressCallback = null, progressStream = false) {
-        const url = `/${this.endpointName}`;
+        const url = `${this.api_server_url}${this.endpointName}`;
         console.log(`URL: ${url}`);
-        //console.log('progressStream: ', progressStream);
 
         params = await this.stringifyObjects(params)
         params.client_session_auth_key = this.clientSessionAuthKey;
@@ -163,7 +170,6 @@ class ModelAPI {
         params.wait_for_result = !progressCallback;
 
         const response = await this.fetchAsync(url, params, true);
-        // console.log('doAPIRequest response', response); // DEBUG output
 
         if (response.success) {
             const jobID = response.job_id;
@@ -201,7 +207,7 @@ class ModelAPI {
     async setupProgressStream(jobID, resultCallback, progressCallback) {
         console.error('Error: The stream feature is not yet fully implemented. Please call doAPIRequest() without progressStream=true.');
         alert('Attention: The stream feature is not yet fully implemented. Please call doAPIRequest() without progressStream=true.')
-        const eventSourceURL = `/stream_progress?client_session_auth_key=${encodeURIComponent(this.clientSessionAuthKey)}&job_id=${encodeURIComponent(jobID)}`;
+        const eventSourceURL = `${this.api_server_url}stream_progress?client_session_auth_key=${encodeURIComponent(this.clientSessionAuthKey)}&job_id=${encodeURIComponent(jobID)}`;
         const eventSource = new EventSource(eventSourceURL);
 
         eventSource.onmessage = (event) => {
@@ -236,7 +242,7 @@ class ModelAPI {
      * @param {function} progressCallback - The callback for progress updates.
      */
     async pollProgress(url, jobID, resultCallback, progressCallback) {
-        const progressURL = `/${this.endpointName}/progress?key=${encodeURIComponent(this.apiKey)}&job_id=${encodeURIComponent(jobID)}`;
+        const progressURL = `${this.api_server_url}${this.endpointName}/progress?key=${encodeURIComponent(this.apiKey)}&job_id=${encodeURIComponent(jobID)}`;
 
         const fetchProgress = async (progressURL) => {
             try {
