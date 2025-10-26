@@ -82,6 +82,7 @@ class ModelAPI():
             output_type(str): Output data type like "image" or "audio". Defaults to'image'.
         """
         self.api_server = api_server
+        self.api_server_url = api_server + "/api/"
         self.endpoint_name = endpoint_name
         self.api_key = api_key
         self.session = session
@@ -106,7 +107,7 @@ class ModelAPI():
             dict: API key validation response from Server. Example: {'success': True, 'error': None}
         """        
         self.api_key = api_key or self.api_key
-        url = f'{self.api_server}/api/validate_key'
+        url = f'{self.api_server_url}validate_key'
         params = {'version': ModelAPI.get_version(), 'key': self.api_key}
         self.setup_session(session)
         try:
@@ -131,7 +132,7 @@ class ModelAPI():
             dict: API key validation response from Server. Example: {'success': True, 'error': None}
         """        
         self.api_key = api_key or self.api_key
-        url = f'{self.api_server}/api/validate_key'
+        url = f'{self.api_server_url}validate_key'
         params = {'version': ModelAPI.get_version(), 'key': self.api_key}
         try:
             response = requests.get(url=url, params=params)
@@ -277,7 +278,7 @@ class ModelAPI():
                 }
         """
         self.setup_session(session)
-        url = f'{self.api_server}/{self.endpoint_name}'
+        url = f'{self.api_server_url}{self.endpoint_name}'
         params['client_session_auth_key'] = self.client_session_auth_key
         params['key'] = self.api_key
         params['wait_for_result'] = not progress_callback
@@ -397,7 +398,7 @@ class ModelAPI():
         params['client_session_auth_key'] = self.client_session_auth_key
         params['key'] = self.api_key
         params['wait_for_result'] = False
-        result = await self.__fetch_async(f'{self.api_server}/{self.endpoint_name}', params)
+        result = await self.__fetch_async(f'{self.api_server_url}{self.endpoint_name}', params)
         if result.get('success'):
             job_id = result['job_id']
             yield {
@@ -486,7 +487,7 @@ class ModelAPI():
                 }
 
         """
-        url = f'{self.api_server}/{self.endpoint_name}'
+        url = f'{self.api_server_url}{self.endpoint_name}'
         params['client_session_auth_key'] = self.client_session_auth_key
         params['key'] = self.api_key
         params['wait_for_result'] = not progress_callback
@@ -529,7 +530,7 @@ class ModelAPI():
         """        
         try:
             response = requests.get(
-                url=f'{self.api_server}/api/endpoints',
+                url=f'{self.api_server_url}endpoints',
                 params={
                     'key': api_key
                 }
@@ -667,7 +668,7 @@ class ModelAPI():
         """        
         try:
             response = requests.get(
-                url=f'{self.api_server}/api/endpoints/{endpoint_name}',
+                url=f'{self.api_server_url}endpoints/{endpoint_name}',
                 params={}
             )
             if response.status_code == 200:
@@ -980,7 +981,7 @@ class ModelAPI():
             str: The client session authentication key.
             
         """
-        url = f'{self.api_server}/{self.endpoint_name}/login'
+        url = f'{self.api_server_url}{self.endpoint_name}/login'
         params = {'version': ModelAPI.get_version(), 'user': user, 'key': api_key}
         try:
             async with self.session.get(url=url, params=params) as response:
@@ -1001,7 +1002,7 @@ class ModelAPI():
         Returns:
             str: The client session authentication key.
         """
-        url = f'{self.api_server}/{self.endpoint_name}/login'
+        url = f'{self.api_server_url}{self.endpoint_name}/login'
         params = {'version': ModelAPI.get_version(), 'user': user, 'key': api_key}
         try:
             response = requests.get(url=url, params=params)
@@ -1096,7 +1097,7 @@ class ModelAPI():
         while True:
             counter += 1
             try:
-                url = f'{self.api_server}/{self.endpoint_name}/progress'
+                url = f'{self.api_server_url}{self.endpoint_name}/progress'
                 params = {
                     'key': self.api_key, 
                     'job_id': job_id
@@ -1200,7 +1201,7 @@ class ModelAPI():
                 }
         """
         try:
-            url = f'{self.api_server}/{self.endpoint_name}/progress'
+            url = f'{self.api_server_url}{self.endpoint_name}/progress'
             params = {
                 'key': self.api_key, 
                 'job_id':job_id
@@ -1319,7 +1320,7 @@ class ModelAPI():
             str: Error description
         """        
         status_code_str = f'Status code: {status_code}\nResponse: {error_reponse}' if status_code else f'Connection to {self.api_server} offline'
-        return f'{request_type.capitalize()} at {self.api_server} failed!\n{status_code_str}'
+        return f'{request_type.capitalize()} at {self.api_server_url} failed!\n{status_code_str}'
 
 
     def __convert_result_params(self, params):

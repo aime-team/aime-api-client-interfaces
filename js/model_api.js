@@ -9,7 +9,7 @@
  */
 class ModelAPI {
 
-    static version = 'JavaScript AIME API Client Interface 0.9.0';
+    static version = 'JavaScript AIME API Client Interface 0.9.8';
     
     /**
     * Constructor of the class.
@@ -19,7 +19,7 @@ class ModelAPI {
     * @param {sting} apiKey - api Key required to authenticate and authorize to use api endpoint    * 
     * @param {object} options {
     *           defaultProgressIntervall: 300, - The intervall for progress updates in milliseconds. The default progress update intervall is 300.
-    *           apiServerUrl: 'https://api.aime.info/', - set URL to API servers 
+    *           apiServerUrl: 'https://api.aime.info/api/', - set URL to API servers 
     *        }
     */
     constructor(endpointName, user, apiKey, options = {}) {
@@ -27,7 +27,7 @@ class ModelAPI {
         this.user = user;
         this.apiKey = apiKey;
         this.clientSessionAuthKey = null;
-        this.apiServerUrl = 'https://api.aime.info/';
+        this.apiServerUrl = 'https://api.aime.info/api/';
         this.defaultProgressIntervall = 300;
 
         if( typeof options == 'object')
@@ -108,7 +108,7 @@ class ModelAPI {
         }
         try {
                 const response = await this.fetchAsync(
-                    `${this.apiServerUrl}api/validate_key?key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`, false
+                    `${this.apiServerUrl}/validate_key?key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`, false
                 );
                 if (response.success) {
                     if (resultCallback && typeof resultCallback === 'function') {
