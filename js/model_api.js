@@ -108,7 +108,7 @@ class ModelAPI {
         }
         try {
                 const response = await this.fetchAsync(
-                    `${this.apiServerUrl}/validate_key?key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`, false
+                    `${this.apiServerUrl}validate_key?key=${this.apiKey}&version=${encodeURIComponent(ModelAPI.version)}`, false
                 );
                 if (response.success) {
                     if (resultCallback && typeof resultCallback === 'function') {
